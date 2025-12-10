@@ -1,6 +1,7 @@
 package com.admin.views;
 
 import com.admin.service.UserService;
+import com.admin.util.ThemeUtil;
 import com.admin.util.UserUtil;
 import com.admin.views.menu.MenuListView;
 import com.admin.views.role.RoleListView;
@@ -9,6 +10,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.html.H1;
@@ -33,6 +35,7 @@ import com.vaadin.flow.component.dependency.JsModule;
  * @date 2024-01-01
  */
 @JsModule("./themes/admin-theme/drawer-toggle-styles.js")
+@JsModule("./themes/admin-theme/theme-toggle.js")
 public class MainLayout extends AppLayout implements AfterNavigationObserver {
 
     private static final String LAST_ROUTE_KEY = "lastRoute";
@@ -47,6 +50,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         getElement().getStyle().set("--drawer-width", "200px");
         getElement().getStyle().set("--vaadin-app-layout-drawer-width", "200px");
         
+        // 初始化主题（从 localStorage 恢复）
+        ThemeUtil.initTheme();
+        
         // 恢复上次访问的路由
         restoreLastRoute();
     }
@@ -60,10 +66,18 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         DrawerToggle drawerToggle = new DrawerToggle();
         drawerToggle.addClassNames("drawer-toggle-button");
         
+        // 创建主题切换按钮
+        Component themeToggleButton = createThemeToggleButton();
+        
         // 创建用户信息区域（右上角）
         Component userMenu = createUserMenu();
         
-        var header = new HorizontalLayout(drawerToggle, logo, userMenu);
+        // 创建右上角操作区域（主题切换按钮 + 用户菜单）
+        HorizontalLayout rightActions = new HorizontalLayout(themeToggleButton, userMenu);
+        rightActions.setSpacing(true);
+        rightActions.setAlignItems(FlexComponent.Alignment.CENTER);
+        
+        var header = new HorizontalLayout(drawerToggle, logo, rightActions);
 
         header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         header.setWidthFull();
@@ -74,6 +88,53 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
                 LumoUtility.Padding.Horizontal.MEDIUM);
 
         addToNavbar(header);
+    }
+
+    /**
+     * 创建主题切换按钮
+     */
+    private Component createThemeToggleButton() {
+        Button themeButton = new Button();
+        Icon moonIcon = new Icon(VaadinIcon.MOON_O);
+        moonIcon.getStyle().set("color", "var(--lumo-body-text-color)");
+        themeButton.setIcon(moonIcon);
+        themeButton.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_TERTIARY);
+        themeButton.setAriaLabel("切换主题");
+        themeButton.addClickListener(e -> {
+            ThemeUtil.toggleTheme();
+            // 延迟更新按钮图标，确保主题切换完成
+            getUI().ifPresent(ui -> {
+                ui.getPage().executeJs(
+                    "setTimeout(function() {" +
+                    "  var currentTheme = window.getCurrentTheme ? window.getCurrentTheme() : 'light';" +
+                    "  return currentTheme;" +
+                    "}, 100);"
+                ).then(String.class, theme -> {
+                    Icon icon = "dark".equals(theme) 
+                        ? new Icon(VaadinIcon.SUN_O) 
+                        : new Icon(VaadinIcon.MOON_O);
+                    icon.getStyle().set("color", "var(--lumo-body-text-color)");
+                    themeButton.setIcon(icon);
+                });
+            });
+        });
+        themeButton.addClassName("theme-toggle-button");
+        
+        // 初始化按钮图标
+        getUI().ifPresent(ui -> {
+            ui.getPage().executeJs(
+                "var currentTheme = window.getCurrentTheme ? window.getCurrentTheme() : 'light';" +
+                "return currentTheme;"
+            ).then(String.class, theme -> {
+                Icon icon = "dark".equals(theme) 
+                    ? new Icon(VaadinIcon.SUN_O) 
+                    : new Icon(VaadinIcon.MOON_O);
+                icon.getStyle().set("color", "var(--lumo-body-text-color)");
+                themeButton.setIcon(icon);
+            });
+        });
+        
+        return themeButton;
     }
 
     /**

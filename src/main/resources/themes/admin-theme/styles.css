@@ -281,3 +281,54 @@ vaadin-time-picker[focused]::part(label) {
   color: var(--lumo-body-text-color) !important;
 }
 
+/* 主题切换按钮样式 */
+.theme-toggle-button {
+  color: var(--lumo-body-text-color) !important;
+}
+
+.theme-toggle-button::part(icon) {
+  color: var(--lumo-body-text-color) !important;
+}
+
+/* 确保导航栏中的主题切换按钮可见 */
+vaadin-app-layout::part(navbar) .theme-toggle-button {
+  color: var(--lumo-body-text-color) !important;
+}
+
+vaadin-app-layout::part(navbar) .theme-toggle-button::part(icon) {
+  color: var(--lumo-body-text-color) !important;
+}
+
+vaadin-app-layout::part(navbar) .theme-toggle-button vaadin-icon {
+  color: var(--lumo-body-text-color) !important;
+}
+
+/* 确保主题切换按钮中的图标颜色正确 */
+.theme-toggle-button vaadin-icon {
+  color: var(--lumo-body-text-color) !important;
+}
+
+vaadin-app-layout::part(navbar) .theme-toggle-button vaadin-icon::part(svg) {
+  fill: var(--lumo-body-text-color) !important;
+}
+
+/* 暗色主题样式覆盖 */
+[theme~="dark"] {
+  /* 暗色主题下的主色调调整 */
+  --lumo-primary-text-color: #ffffff; /* 暗色主题下主色按钮文字改为白色 */
+}
+
+/* 暗色主题下的登录页面样式 */
+[theme~="dark"] .login-view {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+/* 确保暗色主题下所有组件文字可见 */
+[theme~="dark"] vaadin-button[theme~="primary"] {
+  color: var(--lumo-primary-text-color);
+}
+
+[theme~="dark"] vaadin-button[theme~="primary"]::part(label) {
+  color: var(--lumo-primary-text-color);
+}
+
