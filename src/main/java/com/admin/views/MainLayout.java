@@ -27,6 +27,9 @@ public class MainLayout extends AppLayout {
     public MainLayout() {
         createHeader();
         createDrawer();
+        // 设置菜单栏宽度（通过 CSS 变量）
+        getElement().getStyle().set("--drawer-width", "200px");
+        getElement().getStyle().set("--vaadin-app-layout-drawer-width", "200px");
     }
 
     private void createHeader() {

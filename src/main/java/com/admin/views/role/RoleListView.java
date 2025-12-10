@@ -26,15 +26,16 @@ public class RoleListView extends BaseListView<Role, RoleService> {
 
     @Override
     protected void configureColumns() {
-        grid.addColumn(Role::getId).setHeader("ID").setWidth("80px");
-        grid.addColumn(Role::getName).setHeader("角色名称").setAutoWidth(true);
-        grid.addColumn(Role::getCode).setHeader("角色编码").setAutoWidth(true);
-        grid.addColumn(Role::getDescription).setHeader("描述").setAutoWidth(true);
+        grid.addColumn(Role::getId).setHeader("ID").setWidth("80px").setFlexGrow(0);
+        grid.addColumn(Role::getName).setHeader("角色名称").setFlexGrow(1);
+        grid.addColumn(Role::getCode).setHeader("角色编码").setFlexGrow(1);
+        grid.addColumn(Role::getDescription).setHeader("描述").setFlexGrow(2);
         grid.addColumn(role -> role.getIsEnabled() != null && role.getIsEnabled() ? "启用" : "禁用")
                 .setHeader("状态")
-                .setAutoWidth(true);
-        grid.addColumn(Role::getCreatedAt).setHeader("创建时间").setAutoWidth(true);
-        grid.addColumn(Role::getUpdatedAt).setHeader("更新时间").setAutoWidth(true);
+                .setWidth("80px")
+                .setFlexGrow(0);
+        grid.addColumn(Role::getCreatedAt).setHeader("创建时间").setWidth("180px").setFlexGrow(0);
+        grid.addColumn(Role::getUpdatedAt).setHeader("更新时间").setWidth("180px").setFlexGrow(0);
     }
 
     @Override

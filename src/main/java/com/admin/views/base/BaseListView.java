@@ -59,6 +59,8 @@ public abstract class BaseListView<T extends BaseEntity, S> extends VerticalLayo
      * 配置 Grid
      */
     private void configureGrid() {
+        grid.setSizeFull();
+        grid.setWidthFull();
         configureColumns();
         addActionColumn();
 //        addDoubleClickEdit();
