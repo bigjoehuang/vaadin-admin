@@ -13,6 +13,7 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import com.vaadin.flow.component.dependency.JsModule;
 
 /**
  * 主布局
@@ -20,6 +21,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
  * @author Admin
  * @date 2024-01-01
  */
+@JsModule("./themes/admin-theme/drawer-toggle-styles.js")
 public class MainLayout extends AppLayout {
 
     public MainLayout() {
@@ -33,7 +35,9 @@ public class MainLayout extends AppLayout {
                 LumoUtility.FontSize.LARGE,
                 LumoUtility.Margin.MEDIUM);
 
-        var header = new HorizontalLayout(new DrawerToggle(), logo);
+        DrawerToggle drawerToggle = new DrawerToggle();
+        drawerToggle.addClassNames("drawer-toggle-button");
+        var header = new HorizontalLayout(drawerToggle, logo);
 
         header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         header.setWidthFull();
