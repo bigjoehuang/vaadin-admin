@@ -1,6 +1,5 @@
 package com.admin.util;
 
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,7 +47,8 @@ public class FileUtil {
     public static void createDir(String dirPath) {
         File dir = new File(dirPath);
         if (!dir.exists()) {
-            FileUtil.mkdir(dir);
+            // 使用 Hutool 的 FileUtil，使用完全限定名避免命名冲突
+            cn.hutool.core.io.FileUtil.mkdir(dir);
         }
     }
 }
