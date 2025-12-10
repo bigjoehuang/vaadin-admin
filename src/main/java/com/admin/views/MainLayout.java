@@ -1,5 +1,8 @@
 package com.admin.views;
 
+import com.admin.views.menu.MenuListView;
+import com.admin.views.role.RoleListView;
+import com.admin.views.user.UserListView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.html.H1;
@@ -59,12 +62,9 @@ public class MainLayout extends AppLayout {
         return tabs;
     }
 
-    private Tab createTab(String viewName, Class<?> viewClass) {
-        RouterLink link = new RouterLink();
-        link.add(viewName);
-        link.setRoute(viewClass);
+    private Tab createTab(String viewName, Class<? extends com.vaadin.flow.component.Component> viewClass) {
+        RouterLink link = new RouterLink(viewName, viewClass);
         link.setTabIndex(-1);
-
         return new Tab(link);
     }
 }
