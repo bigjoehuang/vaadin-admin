@@ -20,6 +20,14 @@ public interface PermissionMapper {
 
     List<Permission> selectByRoleId(@Param("roleId") Long roleId);
 
+    /**
+     * 根据用户ID查询权限列表（通过用户角色关联）
+     *
+     * @param userId 用户ID
+     * @return 权限列表
+     */
+    List<Permission> selectByUserId(@Param("userId") Long userId);
+
     int insert(Permission permission);
 
     int updateById(Permission permission);

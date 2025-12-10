@@ -39,6 +39,11 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     @Override
+    public List<Permission> getPermissionsByUserId(Long userId) {
+        return permissionMapper.selectByUserId(userId);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void savePermission(Permission permission) {
         permissionMapper.insert(permission);

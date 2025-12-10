@@ -4,6 +4,7 @@ import com.admin.entity.User;
 import com.admin.exception.BusinessException;
 import com.admin.exception.ErrorCode;
 import com.admin.mapper.UserMapper;
+import com.admin.mapper.UserRoleMapper;
 import com.admin.service.UserService;
 import com.admin.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
+    private final UserRoleMapper userRoleMapper;
 
     @Override
     public User getUserById(Long id) {
@@ -99,6 +101,38 @@ public class UserServiceImpl implements UserService {
         // 更新密码
         userMapper.updatePasswordById(userId, encodedPassword);
         log.info("修改密码成功，用户ID: {}", userId);
+    }
+
+    @Override
+    public List<Long> getUserRoleIds(Long userId) {
+        return userRoleMapper.selectRoleIdsByUserId(userId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void assignRoles(Long userId, List<Long> roleIds) {
+        // 验证用户是否存在
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        // 先删除用户的所有角色关联
+        userRoleMapper.deleteByUserId(userId);
+
+        // 如果有角色ID，则批量插入
+        if (roleIds != null && !roleIds.isEmpty()) {
+            userRoleMapper.insertBatch(userId, roleIds);
+        }
+
+        log.info("分配用户角色成功，用户ID: {}, 角色ID列表: {}", userId, roleIds);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void removeUserRole(Long userId, Long roleId) {
+        userRoleMapper.deleteByUserIdAndRoleId(userId, roleId);
+        log.info("移除用户角色成功，用户ID: {}, 角色ID: {}", userId, roleId);
     }
 }
 

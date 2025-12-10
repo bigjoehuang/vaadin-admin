@@ -39,6 +39,15 @@
         ORDER BY p.sort ASC
     </select>
 
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT DISTINCT p.id, p.createdAt, p.updatedAt, p.name, p.code, p.type, p.parentId, p.path, p.component, p.icon, p.sort, p.isEnabled, p.deleted
+        FROM sys_permission p
+        INNER JOIN sys_role_permission rp ON p.id = rp.permissionId
+        INNER JOIN sys_user_role ur ON rp.roleId = ur.roleId
+        WHERE ur.userId = #{userId} AND p.deleted = 0 AND p.isEnabled = 1
+        ORDER BY p.sort ASC
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO sys_permission (createdAt, updatedAt, name, code, type, parentId, path, component, icon, sort, isEnabled, deleted)
         VALUES (NOW(), NOW(), #{name}, #{code}, #{type}, #{parentId}, #{path}, #{component}, #{icon}, #{sort}, #{isEnabled}, 0)

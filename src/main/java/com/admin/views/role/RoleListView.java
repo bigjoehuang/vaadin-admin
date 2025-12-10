@@ -4,6 +4,7 @@ import com.admin.component.BaseFormDialog;
 import com.admin.dto.PageRequest;
 import com.admin.dto.RoleQueryDTO;
 import com.admin.entity.Role;
+import com.admin.service.PermissionService;
 import com.admin.service.RoleService;
 import com.admin.util.NotificationUtil;
 import com.admin.util.PageResult;
@@ -64,9 +65,12 @@ public class RoleListView extends BaseListView<Role, RoleService> {
 
     // 当前分页数据
     private PageResult<Role> currentPageResult;
+    
+    private final PermissionService permissionService;
 
-    public RoleListView(RoleService roleService) {
+    public RoleListView(RoleService roleService, PermissionService permissionService) {
         super(roleService, Role.class, "角色", "添加角色", "role-list-view");
+        this.permissionService = permissionService;
         
         // 启用Grid多选模式
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
@@ -146,9 +150,21 @@ public class RoleListView extends BaseListView<Role, RoleService> {
             deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
             deleteButton.addClickListener(e -> deleteEntity(role));
 
-            actionLayout.add(editButton, deleteButton);
+            Button assignPermissionButton = new Button("分配权限", new Icon(VaadinIcon.KEY));
+            assignPermissionButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_SUCCESS);
+            assignPermissionButton.addClickListener(e -> {
+                RolePermissionAssignDialog dialog = new RolePermissionAssignDialog(
+                    service, 
+                    permissionService, 
+                    role, 
+                    this::performSearch
+                );
+                dialog.open();
+            });
+
+            actionLayout.add(editButton, deleteButton, assignPermissionButton);
             return actionLayout;
-        }).setHeader("操作").setWidth("180px").setFlexGrow(0);
+        }).setHeader("操作").setWidth("280px").setFlexGrow(0);
     }
 
     @Override

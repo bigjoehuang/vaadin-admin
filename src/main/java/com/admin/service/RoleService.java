@@ -65,5 +65,29 @@ public interface RoleService {
      * @param isEnabled 是否启用
      */
     void batchUpdateRoleStatus(List<Long> ids, Boolean isEnabled);
+
+    /**
+     * 获取角色的权限ID列表
+     *
+     * @param roleId 角色ID
+     * @return 权限ID列表
+     */
+    List<Long> getRolePermissionIds(Long roleId);
+
+    /**
+     * 分配角色权限
+     *
+     * @param roleId        角色ID
+     * @param permissionIds 权限ID列表
+     */
+    void assignPermissions(Long roleId, List<Long> permissionIds);
+
+    /**
+     * 移除角色权限
+     *
+     * @param roleId       角色ID
+     * @param permissionId 权限ID
+     */
+    void removeRolePermission(Long roleId, Long permissionId);
 }
 

@@ -17,6 +17,14 @@ public interface PermissionService {
 
     List<Permission> getPermissionsByRoleId(Long roleId);
 
+    /**
+     * 根据用户ID查询权限列表（通过用户角色关联）
+     *
+     * @param userId 用户ID
+     * @return 权限列表
+     */
+    List<Permission> getPermissionsByUserId(Long userId);
+
     void savePermission(Permission permission);
 
     void updatePermission(Permission permission);

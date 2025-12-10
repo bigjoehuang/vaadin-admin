@@ -6,6 +6,7 @@ import com.admin.entity.Role;
 import com.admin.exception.BusinessException;
 import com.admin.exception.ErrorCode;
 import com.admin.mapper.RoleMapper;
+import com.admin.mapper.RolePermissionMapper;
 import com.admin.service.RoleService;
 import com.admin.util.PageResult;
 import com.github.pagehelper.PageHelper;
@@ -31,6 +32,7 @@ public class RoleServiceImpl implements RoleService {
     private static final Logger log = LoggerFactory.getLogger(RoleServiceImpl.class);
 
     private final RoleMapper roleMapper;
+    private final RolePermissionMapper rolePermissionMapper;
 
     @Override
     public Role getRoleById(Long id) {
@@ -149,6 +151,38 @@ public class RoleServiceImpl implements RoleService {
         }
         int count = roleMapper.batchUpdateStatus(ids, isEnabled);
         log.info("批量更新角色状态成功，更新数量: {}, 状态: {}", count, isEnabled ? "启用" : "禁用");
+    }
+
+    @Override
+    public List<Long> getRolePermissionIds(Long roleId) {
+        return rolePermissionMapper.selectPermissionIdsByRoleId(roleId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void assignPermissions(Long roleId, List<Long> permissionIds) {
+        // 验证角色是否存在
+        Role role = roleMapper.selectById(roleId);
+        if (role == null) {
+            throw new BusinessException(ErrorCode.ROLE_NOT_FOUND);
+        }
+
+        // 先删除角色的所有权限关联
+        rolePermissionMapper.deleteByRoleId(roleId);
+
+        // 如果有权限ID，则批量插入
+        if (permissionIds != null && !permissionIds.isEmpty()) {
+            rolePermissionMapper.insertBatch(roleId, permissionIds);
+        }
+
+        log.info("分配角色权限成功，角色ID: {}, 权限ID列表: {}", roleId, permissionIds);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void removeRolePermission(Long roleId, Long permissionId) {
+        rolePermissionMapper.deleteByRoleIdAndPermissionId(roleId, permissionId);
+        log.info("移除角色权限成功，角色ID: {}, 权限ID: {}", roleId, permissionId);
     }
 }
 

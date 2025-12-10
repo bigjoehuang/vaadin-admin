@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.admin.mapper.RolePermissionMapper">
+
+    <select id="selectPermissionIdsByRoleId" resultType="java.lang.Long">
+        SELECT permissionId
+        FROM sys_role_permission
+        WHERE roleId = #{roleId}
+    </select>
+
+    <select id="selectRoleIdsByPermissionId" resultType="java.lang.Long">
+        SELECT roleId
+        FROM sys_role_permission
+        WHERE permissionId = #{permissionId}
+    </select>
+
+    <select id="selectPermissionIdsByUserId" resultType="java.lang.Long">
+        SELECT DISTINCT rp.permissionId
+        FROM sys_role_permission rp
+        INNER JOIN sys_user_role ur ON rp.roleId = ur.roleId
+        WHERE ur.userId = #{userId}
+    </select>
+
+    <insert id="insertBatch">
+        INSERT INTO sys_role_permission (roleId, permissionId)
+        VALUES
+        <foreach collection="permissionIds" item="permissionId" separator=",">
+            (#{roleId}, #{permissionId})
+        </foreach>
+    </insert>
+
+    <delete id="deleteByRoleId">
+        DELETE FROM sys_role_permission
+        WHERE roleId = #{roleId}
+    </delete>
+
+    <delete id="deleteByPermissionId">
+        DELETE FROM sys_role_permission
+        WHERE permissionId = #{permissionId}
+    </delete>
+
+    <delete id="deleteByRoleIdAndPermissionId">
+        DELETE FROM sys_role_permission
+        WHERE roleId = #{roleId} AND permissionId = #{permissionId}
+    </delete>
+
+</mapper>
+

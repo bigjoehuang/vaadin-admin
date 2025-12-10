@@ -49,5 +49,29 @@ public interface UserService {
      * @param newPassword     新密码
      */
     void changePassword(Long userId, String oldPassword, String newPassword);
+
+    /**
+     * 获取用户的角色ID列表
+     *
+     * @param userId 用户ID
+     * @return 角色ID列表
+     */
+    List<Long> getUserRoleIds(Long userId);
+
+    /**
+     * 分配用户角色
+     *
+     * @param userId  用户ID
+     * @param roleIds 角色ID列表
+     */
+    void assignRoles(Long userId, List<Long> roleIds);
+
+    /**
+     * 移除用户角色
+     *
+     * @param userId 用户ID
+     * @param roleId 角色ID
+     */
+    void removeUserRole(Long userId, Long roleId);
 }
 

@@ -157,6 +157,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         tabs.add(createTab("用户管理", UserListView.class));
         tabs.add(createTab("角色管理", RoleListView.class));
         tabs.add(createTab("菜单管理", MenuListView.class));
+        tabs.add(createTab("操作日志", com.admin.views.operationlog.OperationLogListView.class));
         return tabs;
     }
 
