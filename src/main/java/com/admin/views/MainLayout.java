@@ -88,13 +88,13 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         getUI().ifPresent(ui -> {
             // 延迟执行，确保页面已完全加载
             ui.getPage().executeJs(
-                "setTimeout(function() {" +
-                "  var lastRoute = sessionStorage.getItem('" + LAST_ROUTE_KEY + "');" +
-                "  if (lastRoute && lastRoute !== '' && lastRoute !== '/' && window.location.pathname === '/') {" +
-                "    window.history.pushState({}, '', lastRoute);" +
-                "    window.dispatchEvent(new PopStateEvent('popstate', { state: {} }));" +
-                "  }" +
-                "}, 100);"
+                "var lastRoute = sessionStorage.getItem($0);" +
+                "var currentPath = window.location.pathname;" +
+                "if (lastRoute && lastRoute !== '' && lastRoute !== '/' && " +
+                "    (currentPath === '' || currentPath === '/')) {" +
+                "  setTimeout(function() { window.location.href = lastRoute; }, 50);" +
+                "}"
+                , LAST_ROUTE_KEY
             );
         });
     }
