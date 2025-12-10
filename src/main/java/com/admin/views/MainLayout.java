@@ -100,15 +100,13 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         themeButton.setIcon(moonIcon);
         themeButton.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_TERTIARY);
         themeButton.setAriaLabel("切换主题");
-        themeButton.addClickListener(e -> {
-            ThemeUtil.toggleTheme();
-            // 延迟更新按钮图标，确保主题切换完成
+        themeButton.addClassName("theme-toggle-button");
+        
+        // 更新图标的方法
+        Runnable updateIcon = () -> {
             getUI().ifPresent(ui -> {
                 ui.getPage().executeJs(
-                    "setTimeout(function() {" +
-                    "  var currentTheme = window.getCurrentTheme ? window.getCurrentTheme() : 'light';" +
-                    "  return currentTheme;" +
-                    "}, 100);"
+                    "return window.getCurrentTheme ? window.getCurrentTheme() : 'light';"
                 ).then(String.class, theme -> {
                     Icon icon = "dark".equals(theme) 
                         ? new Icon(VaadinIcon.SUN_O) 
@@ -117,22 +115,30 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
                     themeButton.setIcon(icon);
                 });
             });
-        });
-        themeButton.addClassName("theme-toggle-button");
+        };
         
-        // 初始化按钮图标
-        getUI().ifPresent(ui -> {
-            ui.getPage().executeJs(
-                "var currentTheme = window.getCurrentTheme ? window.getCurrentTheme() : 'light';" +
-                "return currentTheme;"
-            ).then(String.class, theme -> {
-                Icon icon = "dark".equals(theme) 
-                    ? new Icon(VaadinIcon.SUN_O) 
-                    : new Icon(VaadinIcon.MOON_O);
-                icon.getStyle().set("color", "var(--lumo-body-text-color)");
-                themeButton.setIcon(icon);
+        themeButton.addClickListener(e -> {
+            // 先获取当前主题
+            getUI().ifPresent(ui -> {
+                ui.getPage().executeJs(
+                    "return window.getCurrentTheme ? window.getCurrentTheme() : 'light';"
+                ).then(String.class, currentTheme -> {
+                    // 切换主题
+                    ThemeUtil.toggleTheme();
+                    
+                    // 根据切换后的主题更新图标（切换是确定的：light -> dark, dark -> light）
+                    String newTheme = "dark".equals(currentTheme) ? "light" : "dark";
+                    Icon icon = "dark".equals(newTheme) 
+                        ? new Icon(VaadinIcon.SUN_O) 
+                        : new Icon(VaadinIcon.MOON_O);
+                    icon.getStyle().set("color", "var(--lumo-body-text-color)");
+                    themeButton.setIcon(icon);
+                });
             });
         });
+        
+        // 初始化按钮图标
+        updateIcon.run();
         
         return themeButton;
     }
