@@ -66,5 +66,11 @@
         WHERE id = #{id}
     </update>
 
+    <update id="updatePasswordById">
+        UPDATE sys_user
+        SET password = #{password}, updatedAt = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
 </mapper>
 

@@ -40,5 +40,14 @@ public interface UserService {
      * 删除用户
      */
     void deleteUser(Long id);
+
+    /**
+     * 修改密码
+     *
+     * @param userId          用户ID
+     * @param oldPassword     旧密码
+     * @param newPassword     新密码
+     */
+    void changePassword(Long userId, String oldPassword, String newPassword);
 }
 

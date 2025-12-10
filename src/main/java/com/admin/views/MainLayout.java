@@ -1,11 +1,20 @@
 package com.admin.views;
 
+import com.admin.service.UserService;
+import com.admin.util.UserUtil;
 import com.admin.views.menu.MenuListView;
 import com.admin.views.role.RoleListView;
 import com.admin.views.user.UserListView;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
+import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -28,8 +37,10 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
 
     private static final String LAST_ROUTE_KEY = "lastRoute";
     private Tabs tabs;
+    private final UserService userService;
 
-    public MainLayout() {
+    public MainLayout(UserService userService) {
+        this.userService = userService;
         createHeader();
         createDrawer();
         // 设置菜单栏宽度（通过 CSS 变量）
@@ -48,15 +59,89 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
 
         DrawerToggle drawerToggle = new DrawerToggle();
         drawerToggle.addClassNames("drawer-toggle-button");
-        var header = new HorizontalLayout(drawerToggle, logo);
+        
+        // 创建用户信息区域（右上角）
+        Component userMenu = createUserMenu();
+        
+        var header = new HorizontalLayout(drawerToggle, logo, userMenu);
 
         header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         header.setWidthFull();
+        header.setFlexGrow(1, logo);
+        header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         header.addClassNames(
                 LumoUtility.Padding.Vertical.NONE,
                 LumoUtility.Padding.Horizontal.MEDIUM);
 
         addToNavbar(header);
+    }
+
+    /**
+     * 创建用户菜单（右上角）
+     */
+    private Component createUserMenu() {
+        // 获取当前用户信息
+        String userName = UserUtil.getCurrentUserName();
+        com.admin.entity.User currentUser = UserUtil.getCurrentUser();
+        
+        // 创建用户信息容器
+        HorizontalLayout userLayout = new HorizontalLayout();
+        userLayout.setSpacing(true);
+        userLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        userLayout.addClassName("user-menu-layout");
+        
+        // 创建头像
+        Avatar avatar = new Avatar();
+        if (currentUser != null && currentUser.getNickname() != null && !currentUser.getNickname().isEmpty()) {
+            avatar.setName(currentUser.getNickname());
+        } else if (userName != null) {
+            avatar.setName(userName);
+        } else {
+            avatar.setName("用户");
+        }
+        avatar.setImage(currentUser != null ? currentUser.getAvatar() : null);
+        
+        // 创建用户名显示
+        Span userNameSpan = new Span();
+        if (currentUser != null && currentUser.getNickname() != null && !currentUser.getNickname().isEmpty()) {
+            userNameSpan.setText(currentUser.getNickname());
+        } else if (userName != null) {
+            userNameSpan.setText(userName);
+        } else {
+            userNameSpan.setText("用户");
+        }
+        userNameSpan.getStyle().set("font-size", "var(--lumo-font-size-m)");
+        userNameSpan.getStyle().set("color", "var(--lumo-body-text-color)");
+        
+        // 创建下拉图标
+        Icon dropdownIcon = new Icon(VaadinIcon.CHEVRON_DOWN);
+        dropdownIcon.setSize("16px");
+        dropdownIcon.getStyle().set("color", "var(--lumo-body-text-color)");
+        
+        userLayout.add(avatar, userNameSpan, dropdownIcon);
+        userLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        
+        // 创建上下文菜单
+        ContextMenu contextMenu = new ContextMenu();
+        contextMenu.setTarget(userLayout);
+        contextMenu.setOpenOnClick(true);
+        
+        // 添加"修改密码"菜单项
+        MenuItem changePasswordItem = contextMenu.addItem("修改密码", e -> {
+            ChangePasswordDialog dialog = new ChangePasswordDialog(userService);
+            dialog.open();
+        });
+        changePasswordItem.addComponentAsFirst(new Icon(VaadinIcon.KEY));
+        
+        // 添加"退出登录"菜单项
+        MenuItem logoutItem = contextMenu.addItem("退出登录", e -> {
+            getUI().ifPresent(ui -> {
+                ui.getPage().setLocation("/logout");
+            });
+        });
+        logoutItem.addComponentAsFirst(new Icon(VaadinIcon.SIGN_OUT));
+        
+        return userLayout;
     }
 
     private void createDrawer() {

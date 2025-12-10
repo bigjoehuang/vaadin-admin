@@ -43,5 +43,14 @@ public interface UserMapper {
      * 根据ID删除用户
      */
     int deleteById(@Param("id") Long id);
+
+    /**
+     * 更新用户密码
+     *
+     * @param id       用户ID
+     * @param password 新密码（已加密）
+     * @return 更新行数
+     */
+    int updatePasswordById(@Param("id") Long id, @Param("password") String password);
 }
 

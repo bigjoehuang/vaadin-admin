@@ -5,6 +5,7 @@ import com.admin.exception.BusinessException;
 import com.admin.exception.ErrorCode;
 import com.admin.mapper.UserMapper;
 import com.admin.service.UserService;
+import com.admin.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -76,6 +77,28 @@ public class UserServiceImpl implements UserService {
         }
         userMapper.deleteById(id);
         log.info("删除用户成功，ID: {}", id);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void changePassword(Long userId, String oldPassword, String newPassword) {
+        // 验证用户是否存在
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        // 验证旧密码是否正确
+        if (!SecurityUtil.matches(oldPassword, user.getPassword())) {
+            throw new BusinessException(ErrorCode.USERNAME_OR_PASSWORD_ERROR.getCode(), "原密码不正确");
+        }
+
+        // 加密新密码
+        String encodedPassword = SecurityUtil.encodePassword(newPassword);
+
+        // 更新密码
+        userMapper.updatePasswordById(userId, encodedPassword);
+        log.info("修改密码成功，用户ID: {}", userId);
     }
 }
 
