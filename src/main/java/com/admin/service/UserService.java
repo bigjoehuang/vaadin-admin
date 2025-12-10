@@ -1,6 +1,9 @@
 package com.admin.service;
 
+import com.admin.dto.PageRequest;
+import com.admin.dto.UserQueryDTO;
 import com.admin.entity.User;
+import com.admin.util.PageResult;
 
 import java.util.List;
 
@@ -27,6 +30,23 @@ public interface UserService {
     List<User> listUsers();
 
     /**
+     * 分页查询用户
+     *
+     * @param request 分页请求
+     * @param query   查询条件
+     * @return 分页结果
+     */
+    PageResult<User> pageUsers(PageRequest request, UserQueryDTO query);
+
+    /**
+     * 根据条件查询用户列表
+     *
+     * @param query 查询条件
+     * @return 用户列表
+     */
+    List<User> listUsersByCondition(UserQueryDTO query);
+
+    /**
      * 保存用户
      */
     void saveUser(User user);
@@ -37,9 +57,32 @@ public interface UserService {
     void updateUser(User user);
 
     /**
+     * 更新用户状态
+     *
+     * @param id        用户ID
+     * @param isEnabled 是否启用
+     */
+    void updateUserStatus(Long id, Boolean isEnabled);
+
+    /**
      * 删除用户
      */
     void deleteUser(Long id);
+
+    /**
+     * 批量删除用户
+     *
+     * @param ids 用户ID列表
+     */
+    void batchDeleteUsers(List<Long> ids);
+
+    /**
+     * 批量更新用户状态
+     *
+     * @param ids       用户ID列表
+     * @param isEnabled 是否启用
+     */
+    void batchUpdateUserStatus(List<Long> ids, Boolean isEnabled);
 
     /**
      * 修改密码
