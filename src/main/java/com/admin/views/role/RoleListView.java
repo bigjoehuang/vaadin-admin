@@ -528,6 +528,8 @@ public class RoleListView extends BaseListView<Role, RoleService> {
         confirmDialog.setConfirmText("删除");
         confirmDialog.setConfirmButtonTheme("error primary");
         confirmDialog.setCancelText("取消");
+        confirmDialog.setCancelButtonTheme("tertiary");
+        confirmDialog.setCancelable(true);
 
         confirmDialog.addConfirmListener(e -> {
             try {
@@ -538,6 +540,10 @@ public class RoleListView extends BaseListView<Role, RoleService> {
             } catch (Exception ex) {
                 NotificationUtil.showError("批量删除失败：" + ex.getMessage());
             }
+        });
+
+        confirmDialog.addCancelListener(e -> {
+            // 用户点击取消，关闭对话框
         });
 
         confirmDialog.open();
@@ -562,6 +568,8 @@ public class RoleListView extends BaseListView<Role, RoleService> {
         confirmDialog.setConfirmText(action);
         confirmDialog.setConfirmButtonTheme("primary");
         confirmDialog.setCancelText("取消");
+        confirmDialog.setCancelButtonTheme("tertiary");
+        confirmDialog.setCancelable(true);
 
         confirmDialog.addConfirmListener(e -> {
             try {
@@ -572,6 +580,10 @@ public class RoleListView extends BaseListView<Role, RoleService> {
             } catch (Exception ex) {
                 NotificationUtil.showError("批量" + action + "失败：" + ex.getMessage());
             }
+        });
+
+        confirmDialog.addCancelListener(e -> {
+            // 用户点击取消，关闭对话框
         });
 
         confirmDialog.open();

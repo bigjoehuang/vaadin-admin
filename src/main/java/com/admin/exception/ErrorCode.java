@@ -70,7 +70,12 @@ public enum ErrorCode {
     /**
      * 权限不存在
      */
-    PERMISSION_NOT_FOUND(3001, "权限不存在");
+    PERMISSION_NOT_FOUND(3001, "权限不存在"),
+
+    /**
+     * 菜单不存在
+     */
+    MENU_NOT_FOUND(4001, "菜单不存在");
 
     /**
      * 错误码

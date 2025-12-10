@@ -164,7 +164,24 @@ public interface UserService {
 
 ## 控制器规范
 
-### 类注解
+### 架构说明
+
+**本项目是纯 Vaadin 应用，视图层直接调用 Service 层，不需要创建 Controller 层。**
+
+- 所有业务逻辑在 Service 层实现
+- Vaadin 视图（View）直接注入 Service 并调用其方法
+- 不需要创建 REST API Controller（除非需要对外提供 REST API 接口）
+- 如果未来需要提供 REST API 给外部系统或移动端，再添加 Controller 层
+
+### Controller 使用场景（可选）
+
+仅在以下情况下需要创建 Controller：
+- 需要对外提供 REST API 接口
+- 需要前端分离（React/Vue 等前端框架）
+- 需要移动端或其他客户端调用
+- 需要 API 文档（Swagger）
+
+### 类注解（仅当需要 REST API 时）
 ```java
 @RestController
 @RequestMapping("/api/user")
@@ -174,14 +191,14 @@ public class UserController {
 }
 ```
 
-### 方法注解和命名
+### 方法注解和命名（仅当需要 REST API 时）
 - `@GetMapping("/list")` - 列表查询
 - `@GetMapping("/{id}")` - 详情查询
 - `@PostMapping` - 新增
 - `@PutMapping("/{id}")` - 更新
 - `@DeleteMapping("/{id}")` - 删除
 
-### 统一返回格式
+### 统一返回格式（仅当需要 REST API 时）
 ```java
 @GetMapping("/{id}")
 public Result<User> getUser(@PathVariable Long id) {

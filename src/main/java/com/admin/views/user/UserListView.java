@@ -521,6 +521,8 @@ public class UserListView extends BaseListView<User, UserService> {
         confirmDialog.setConfirmText("删除");
         confirmDialog.setConfirmButtonTheme("error primary");
         confirmDialog.setCancelText("取消");
+        confirmDialog.setCancelButtonTheme("tertiary");
+        confirmDialog.setCancelable(true);
 
         confirmDialog.addConfirmListener(e -> {
             try {
@@ -531,6 +533,10 @@ public class UserListView extends BaseListView<User, UserService> {
             } catch (Exception ex) {
                 NotificationUtil.showError("批量删除失败：" + ex.getMessage());
             }
+        });
+
+        confirmDialog.addCancelListener(e -> {
+            // 用户点击取消，关闭对话框
         });
 
         confirmDialog.open();
@@ -555,6 +561,8 @@ public class UserListView extends BaseListView<User, UserService> {
         confirmDialog.setConfirmText(action);
         confirmDialog.setConfirmButtonTheme("primary");
         confirmDialog.setCancelText("取消");
+        confirmDialog.setCancelButtonTheme("tertiary");
+        confirmDialog.setCancelable(true);
 
         confirmDialog.addConfirmListener(e -> {
             try {
@@ -565,6 +573,10 @@ public class UserListView extends BaseListView<User, UserService> {
             } catch (Exception ex) {
                 NotificationUtil.showError("批量" + action + "失败：" + ex.getMessage());
             }
+        });
+
+        confirmDialog.addCancelListener(e -> {
+            // 用户点击取消，关闭对话框
         });
 
         confirmDialog.open();

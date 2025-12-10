@@ -162,6 +162,40 @@ vaadin-dialog vaadin-button[theme~="primary"]::part(label) {
   color: var(--lumo-primary-text-color) !important;
 }
 
+/* 确保确认对话框中的按钮文字可见 */
+vaadin-confirm-dialog vaadin-button {
+  color: var(--lumo-body-text-color) !important;
+}
+
+vaadin-confirm-dialog vaadin-button::part(label) {
+  color: var(--lumo-body-text-color) !important;
+}
+
+vaadin-confirm-dialog vaadin-button[theme~="tertiary"] {
+  color: var(--lumo-body-text-color) !important;
+  border: 1px solid var(--lumo-contrast-30pct) !important;
+}
+
+vaadin-confirm-dialog vaadin-button[theme~="tertiary"]::part(label) {
+  color: var(--lumo-body-text-color) !important;
+}
+
+vaadin-confirm-dialog vaadin-button[theme~="primary"] {
+  color: var(--lumo-primary-text-color) !important;
+}
+
+vaadin-confirm-dialog vaadin-button[theme~="primary"]::part(label) {
+  color: var(--lumo-primary-text-color) !important;
+}
+
+vaadin-confirm-dialog vaadin-button[theme~="error"] {
+  color: var(--lumo-primary-text-color) !important;
+}
+
+vaadin-confirm-dialog vaadin-button[theme~="error"]::part(label) {
+  color: var(--lumo-primary-text-color) !important;
+}
+
 /* 确保对话框 footer 中的按钮文字可见 */
 vaadin-dialog::part(footer) vaadin-button {
   color: var(--lumo-body-text-color) !important;

@@ -176,6 +176,8 @@ public abstract class BaseListView<T extends BaseEntity, S> extends VerticalLayo
         confirmDialog.setConfirmText("删除");
         confirmDialog.setConfirmButtonTheme("error primary");
         confirmDialog.setCancelText("取消");
+        confirmDialog.setCancelButtonTheme("tertiary");
+        confirmDialog.setCancelable(true);
 
         confirmDialog.addConfirmListener(e -> {
             try {
@@ -185,6 +187,10 @@ public abstract class BaseListView<T extends BaseEntity, S> extends VerticalLayo
             } catch (Exception ex) {
                 NotificationUtil.showError("删除" + entityName + "失败：" + ex.getMessage());
             }
+        });
+
+        confirmDialog.addCancelListener(e -> {
+            // 用户点击取消，关闭对话框
         });
 
         confirmDialog.open();
