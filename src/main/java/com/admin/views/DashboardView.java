@@ -13,7 +13,7 @@ import com.vaadin.flow.router.Route;
  */
 @Route(value = "", layout = MainLayout.class)
 @PageTitle("仪表盘")
-public class DashboardView extends VerticalLayout {
+public class DashboardView extends VerticalLayout implements AuthenticatedRoute {
 
     public DashboardView() {
         add(new H2("欢迎使用 Vaadin Admin"));

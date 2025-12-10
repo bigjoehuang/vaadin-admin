@@ -23,12 +23,30 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/VAADIN/**", "/icons/**", "/images/**", "/themes/**").permitAll()
+                // 允许访问登录页面和静态资源
+                .requestMatchers(
+                    "/",
+                    "/login",
+                    "/VAADIN/**",
+                    "/icons/**",
+                    "/images/**",
+                    "/themes/**",
+                    "/frontend/**",
+                    "/sw.js",
+                    "/sw-runtime-resources-precache.js",
+                    "/manifest.webmanifest"
+                ).permitAll()
+                // 其他请求需要认证
                 .anyRequest().authenticated()
             )
+            // 禁用 CSRF（Vaadin 有自己的 CSRF 保护）
             .csrf(AbstractHttpConfigurer::disable)
+            // 配置表单登录
             .formLogin(form -> form
                 .loginPage("/login")
+                .loginProcessingUrl("/login")
+                .defaultSuccessUrl("/", true)
+                .failureUrl("/login?error")
                 .permitAll()
             )
             .logout(logout -> logout

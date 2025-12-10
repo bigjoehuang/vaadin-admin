@@ -4,9 +4,20 @@ spring:
     username: root
     password: root@local
 
+  # DevTools 配置（支持热重载）
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java,src/main/resources
+      exclude: static/**,public/**,templates/**,META-INF/maven/**,META-INF/resources/**
+    livereload:
+      enabled: true
+      port: 35729
+
 logging:
   level:
     com.admin: DEBUG
     org.springframework.web: DEBUG
     org.mybatis: DEBUG
+    org.springframework.boot.devtools: DEBUG
 

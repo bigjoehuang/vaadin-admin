@@ -1,8 +1,9 @@
 -- 插入默认数据
--- 插入默认管理员用户（密码：admin123，需要在前端或服务中加密）
+-- 插入默认管理员用户（密码：admin123）
+-- 密码已使用 BCrypt 加密
 INSERT INTO sys_user (userName, password, nickname, email, isEnabled, deleted)
-VALUES ('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iwK8pJ1C', '管理员', 'admin@example.com', 1, 0)
-ON DUPLICATE KEY UPDATE userName = userName;
+VALUES ('admin', '$2a$10$seSlmKMS9IE5QQiwvEwxS.4rs/ilXwgaw7jCPxh3zct7I1.VkCZZG', '管理员', 'admin@example.com', 1, 0)
+ON DUPLICATE KEY UPDATE password = VALUES(password);
 
 -- 插入默认角色
 INSERT INTO sys_role (name, code, description, isEnabled, deleted)
