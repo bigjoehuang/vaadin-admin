@@ -121,3 +121,88 @@ vaadin-tab {
   color: var(--lumo-body-text-color);
 }
 
+/* 确保对话框中的按钮文字可见 */
+vaadin-dialog vaadin-button {
+  color: var(--lumo-body-text-color) !important;
+}
+
+vaadin-dialog vaadin-button::part(label) {
+  color: var(--lumo-body-text-color) !important;
+}
+
+vaadin-dialog vaadin-button[theme~="tertiary"] {
+  color: var(--lumo-body-text-color) !important;
+}
+
+vaadin-dialog vaadin-button[theme~="tertiary"]::part(label) {
+  color: var(--lumo-body-text-color) !important;
+}
+
+vaadin-dialog vaadin-button[theme~="primary"] {
+  color: var(--lumo-primary-text-color) !important;
+}
+
+vaadin-dialog vaadin-button[theme~="primary"]::part(label) {
+  color: var(--lumo-primary-text-color) !important;
+}
+
+/* 确保对话框 footer 中的按钮文字可见 */
+vaadin-dialog::part(footer) vaadin-button {
+  color: var(--lumo-body-text-color) !important;
+}
+
+vaadin-dialog::part(footer) vaadin-button::part(label) {
+  color: var(--lumo-body-text-color) !important;
+}
+
+vaadin-dialog::part(footer) vaadin-button[theme~="tertiary"] {
+  color: var(--lumo-body-text-color) !important;
+}
+
+vaadin-dialog::part(footer) vaadin-button[theme~="tertiary"]::part(label) {
+  color: var(--lumo-body-text-color) !important;
+}
+
+vaadin-dialog::part(footer) vaadin-button[theme~="primary"] {
+  color: var(--lumo-primary-text-color) !important;
+}
+
+vaadin-dialog::part(footer) vaadin-button[theme~="primary"]::part(label) {
+  color: var(--lumo-primary-text-color) !important;
+}
+
+/* 确保所有按钮文字可见（通用规则） */
+vaadin-button {
+  color: var(--lumo-body-text-color);
+}
+
+vaadin-button::part(label) {
+  color: var(--lumo-body-text-color);
+}
+
+vaadin-button[theme~="tertiary"] {
+  color: var(--lumo-body-text-color);
+}
+
+vaadin-button[theme~="tertiary"]::part(label) {
+  color: var(--lumo-body-text-color);
+}
+
+vaadin-button[theme~="primary"] {
+  color: var(--lumo-primary-text-color);
+}
+
+vaadin-button[theme~="primary"]::part(label) {
+  color: var(--lumo-primary-text-color);
+}
+
+/* 确保按钮图标颜色正确 */
+vaadin-button::part(prefix),
+vaadin-button::part(suffix) {
+  color: inherit;
+}
+
+vaadin-button vaadin-icon {
+  color: inherit;
+}
+

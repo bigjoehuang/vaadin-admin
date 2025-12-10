@@ -69,20 +69,29 @@ public abstract class BaseFormDialog<T extends BaseEntity> extends Dialog {
         }
 
         // 创建按钮
-        saveButton = new Button(isEdit ? "更新" : "保存");
-        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveButton.addClickListener(e -> save());
-
         cancelButton = new Button("取消");
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         cancelButton.addClickListener(e -> close());
+        // 确保取消按钮文字可见
+        cancelButton.getElement().getStyle().set("color", "var(--lumo-body-text-color)");
 
-        HorizontalLayout buttonLayout = new HorizontalLayout(saveButton, cancelButton);
-        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-        buttonLayout.setWidthFull();
+        saveButton = new Button(isEdit ? "更新" : "保存");
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        saveButton.addClickListener(e -> save());
+        // 主要按钮使用白色文字（在蓝色背景上）
+        saveButton.getElement().getStyle().set("color", "var(--lumo-primary-text-color)");
 
-        VerticalLayout content = new VerticalLayout(formLayout, buttonLayout);
-        content.setPadding(false);
+        // 将按钮添加到对话框的 footer
+        HorizontalLayout footerLayout = new HorizontalLayout(cancelButton, saveButton);
+        footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        footerLayout.setSpacing(true);
+        footerLayout.setWidthFull();
+        footerLayout.setPadding(true);
+        getFooter().add(footerLayout);
+
+        // 添加表单内容
+        VerticalLayout content = new VerticalLayout(formLayout);
+        content.setPadding(true);
         content.setSpacing(true);
         content.setWidthFull();
 

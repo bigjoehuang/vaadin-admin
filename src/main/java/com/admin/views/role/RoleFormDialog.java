@@ -49,17 +49,21 @@ public class RoleFormDialog extends BaseFormDialog<Role> {
         nameField.setRequired(true);
         nameField.setRequiredIndicatorVisible(true);
         nameField.setWidthFull();
+        nameField.setPlaceholder("请输入角色名称，1-50个字符");
 
         codeField = new TextField("角色编码");
         codeField.setRequired(true);
         codeField.setRequiredIndicatorVisible(true);
         codeField.setWidthFull();
+        codeField.setPlaceholder("请输入角色编码，1-50个字符，唯一标识");
         if (isEdit) {
             codeField.setReadOnly(true);
+            codeField.setHelperText("编辑模式下编码不可修改");
         }
 
         descriptionField = new TextField("描述");
         descriptionField.setWidthFull();
+        descriptionField.setPlaceholder("请输入角色描述，最多200个字符");
 
         enabledCheckbox = new Checkbox("是否启用");
         enabledCheckbox.setValue(true);
@@ -83,11 +87,12 @@ public class RoleFormDialog extends BaseFormDialog<Role> {
                 .withValidator(new StringLengthValidator("角色编码长度必须在1-50个字符之间", 1, 50))
                 .withValidator(code -> {
                     if (isEdit) {
-                        return true; // 编辑模式下不验证编码唯一性
+                        // 编辑模式下，编码唯一性由Service层验证（已排除当前记录）
+                        return true;
                     }
                     // 新增模式下检查编码是否已存在
                     return !isCodeExists(code);
-                }, "角色编码已存在")
+                }, "角色编码已存在，请使用其他编码")
                 .bind(Role::getCode, Role::setCode);
 
         binder.forField(descriptionField)
@@ -130,8 +135,13 @@ public class RoleFormDialog extends BaseFormDialog<Role> {
             if (refreshCallback != null) {
                 refreshCallback.run();
             }
+        } catch (com.admin.exception.BusinessException e) {
+            // 业务异常，显示友好的错误信息
+            showError(e.getMessage());
         } catch (Exception e) {
+            // 其他异常，显示通用错误信息
             showError("操作失败：" + e.getMessage());
+            e.printStackTrace();
         }
     }
 
