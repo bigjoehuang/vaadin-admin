@@ -1,7 +1,7 @@
 /* 全局样式 */
 :root {
   --lumo-primary-color: #1976d2;
-  --lumo-primary-text-color: #ffffff;
+  --lumo-primary-text-color: #1a1a1a; /* 改为黑色，原为白色 */
   --lumo-base-color: #ffffff;
   --lumo-body-text-color: #1a1a1a;
   --lumo-header-text-color: #1a1a1a;
@@ -11,6 +11,22 @@
   --lumo-space-xl: 2rem;
   --drawer-width: 200px; /* 菜单栏宽度 */
   --vaadin-app-layout-drawer-width: var(--drawer-width);
+  
+  /* 输入框label颜色 - 使用Vaadin CSS变量 */
+  --lumo-text-field-label-color: var(--lumo-body-text-color);
+  --lumo-text-area-label-color: var(--lumo-body-text-color);
+  --lumo-password-field-label-color: var(--lumo-body-text-color);
+  --lumo-email-field-label-color: var(--lumo-body-text-color);
+  --lumo-number-field-label-color: var(--lumo-body-text-color);
+  --lumo-integer-field-label-color: var(--lumo-body-text-color);
+  --lumo-combo-box-label-color: var(--lumo-body-text-color);
+  --lumo-select-label-color: var(--lumo-body-text-color);
+  --lumo-date-picker-label-color: var(--lumo-body-text-color);
+  --lumo-time-picker-label-color: var(--lumo-body-text-color);
+  
+  /* Vaadin输入框label颜色（备用） */
+  --vaadin-input-field-label-color: var(--lumo-body-text-color);
+  --vaadin-input-field-label-color-focus: var(--lumo-body-text-color);
 }
 
 /* 兼容 html 选择器 */
@@ -204,5 +220,64 @@ vaadin-button::part(suffix) {
 
 vaadin-button vaadin-icon {
   color: inherit;
+}
+
+/* 确保输入框label在获得焦点时保持可见 - 使用CSS变量和直接样式 */
+vaadin-text-field,
+vaadin-text-area,
+vaadin-password-field,
+vaadin-email-field,
+vaadin-number-field,
+vaadin-integer-field,
+vaadin-combo-box,
+vaadin-select,
+vaadin-date-picker,
+vaadin-time-picker {
+  --lumo-text-field-label-color: var(--lumo-body-text-color) !important;
+  --vaadin-input-field-label-color: var(--lumo-body-text-color) !important;
+  --vaadin-input-field-label-color-focus: var(--lumo-body-text-color) !important;
+}
+
+/* 确保输入框label在获得焦点时保持可见 */
+vaadin-text-field[focused],
+vaadin-text-area[focused],
+vaadin-password-field[focused],
+vaadin-email-field[focused],
+vaadin-number-field[focused],
+vaadin-integer-field[focused],
+vaadin-combo-box[focused],
+vaadin-select[focused],
+vaadin-date-picker[focused],
+vaadin-time-picker[focused] {
+  --lumo-text-field-label-color: var(--lumo-body-text-color) !important;
+  --vaadin-input-field-label-color: var(--lumo-body-text-color) !important;
+  --vaadin-input-field-label-color-focus: var(--lumo-body-text-color) !important;
+}
+
+/* 使用::part选择器作为备用方案 */
+vaadin-text-field::part(label),
+vaadin-text-area::part(label),
+vaadin-password-field::part(label),
+vaadin-email-field::part(label),
+vaadin-number-field::part(label),
+vaadin-integer-field::part(label),
+vaadin-combo-box::part(label),
+vaadin-select::part(label),
+vaadin-date-picker::part(label),
+vaadin-time-picker::part(label) {
+  color: var(--lumo-body-text-color) !important;
+}
+
+vaadin-text-field[focused]::part(label),
+vaadin-text-area[focused]::part(label),
+vaadin-password-field[focused]::part(label),
+vaadin-email-field[focused]::part(label),
+vaadin-number-field[focused]::part(label),
+vaadin-integer-field[focused]::part(label),
+vaadin-combo-box[focused]::part(label),
+vaadin-select[focused]::part(label),
+vaadin-date-picker[focused]::part(label),
+vaadin-time-picker[focused]::part(label) {
+  color: var(--lumo-body-text-color) !important;
 }
 

@@ -50,12 +50,18 @@ public class RoleFormDialog extends BaseFormDialog<Role> {
         nameField.setRequiredIndicatorVisible(true);
         nameField.setWidthFull();
         nameField.setPlaceholder("请输入角色名称，1-50个字符");
+        // 通过Java代码设置label颜色，确保在获得焦点时可见
+        nameField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
+        nameField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
         codeField = new TextField("角色编码");
         codeField.setRequired(true);
         codeField.setRequiredIndicatorVisible(true);
         codeField.setWidthFull();
         codeField.setPlaceholder("请输入角色编码，1-50个字符，唯一标识");
+        // 通过Java代码设置label颜色
+        codeField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
+        codeField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
         if (isEdit) {
             codeField.setReadOnly(true);
             codeField.setHelperText("编辑模式下编码不可修改");
@@ -64,6 +70,9 @@ public class RoleFormDialog extends BaseFormDialog<Role> {
         descriptionField = new TextField("描述");
         descriptionField.setWidthFull();
         descriptionField.setPlaceholder("请输入角色描述，最多200个字符");
+        // 通过Java代码设置label颜色
+        descriptionField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
+        descriptionField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
         enabledCheckbox = new Checkbox("是否启用");
         enabledCheckbox.setValue(true);
@@ -72,6 +81,47 @@ public class RoleFormDialog extends BaseFormDialog<Role> {
         formLayout.add(codeField, 2);
         formLayout.add(descriptionField, 2);
         formLayout.add(enabledCheckbox, 2);
+        
+        // 添加调试信息：检查样式是否正确应用
+        addDebugInfo();
+    }
+    
+    /**
+     * 添加调试信息，检查样式是否正确应用
+     */
+    private void addDebugInfo() {
+        // 延迟执行，确保DOM已渲染
+        getUI().ifPresent(ui -> ui.getPage().executeJs(
+            "console.log('=== RoleFormDialog 样式调试信息 ===');" +
+            "setTimeout(function() {" +
+            "  var textFields = document.querySelectorAll('vaadin-text-field');" +
+            "  console.log('找到 ' + textFields.length + ' 个 TextField');" +
+            "  textFields.forEach(function(field, index) {" +
+            "    var label = field.shadowRoot ? field.shadowRoot.querySelector('label') : null;" +
+            "    var labelText = label ? label.textContent : 'N/A';" +
+            "    var labelColor = label ? window.getComputedStyle(label).color : 'N/A';" +
+            "    var labelPart = field.shadowRoot ? field.shadowRoot.querySelector('[part=\"label\"]') : null;" +
+            "    var labelPartColor = labelPart ? window.getComputedStyle(labelPart).color : 'N/A';" +
+            "    var cssVar = window.getComputedStyle(field).getPropertyValue('--lumo-text-field-label-color');" +
+            "    var vaadinVar = window.getComputedStyle(field).getPropertyValue('--vaadin-input-field-label-color');" +
+            "    console.log('TextField[' + index + ']:');" +
+            "    console.log('  Label文本: ' + labelText);" +
+            "    console.log('  Label颜色: ' + labelColor);" +
+            "    console.log('  Label Part颜色: ' + labelPartColor);" +
+            "    console.log('  --lumo-text-field-label-color: ' + (cssVar || '未设置'));" +
+            "    console.log('  --vaadin-input-field-label-color: ' + (vaadinVar || '未设置'));" +
+            "    console.log('  是否有shadowRoot: ' + (field.shadowRoot ? '是' : '否'));" +
+            "    if (field.shadowRoot) {" +
+            "      var labelElement = field.shadowRoot.querySelector('label');" +
+            "      if (labelElement) {" +
+            "        console.log('  Label元素类名: ' + labelElement.className);" +
+            "        console.log('  Label元素样式: ' + labelElement.getAttribute('style'));" +
+            "      }" +
+            "    }" +
+            "  });" +
+            "  console.log('=== 调试信息结束 ===');" +
+            "}, 500);"
+        ));
     }
 
     @Override

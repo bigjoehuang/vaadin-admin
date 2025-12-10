@@ -102,17 +102,32 @@ public class RoleListView extends BaseListView<Role, RoleService> {
         // 优化状态列显示（使用图标和颜色）
         grid.addComponentColumn(role -> {
             boolean enabled = role.getIsEnabled() != null && role.getIsEnabled();
-            Span status = new Span(enabled ? "启用" : "禁用");
-            status.getStyle().set("display", "flex");
-            status.getStyle().set("align-items", "center");
-            status.getStyle().set("gap", "4px");
             
+            // 创建容器
+            HorizontalLayout statusLayout = new HorizontalLayout();
+            statusLayout.setSpacing(true);
+            statusLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+            statusLayout.setPadding(false);
+            statusLayout.setMargin(false);
+            
+            // 创建图标
             Icon icon = new Icon(enabled ? VaadinIcon.CHECK_CIRCLE : VaadinIcon.CLOSE_CIRCLE);
-            icon.setColor(enabled ? "var(--lumo-success-color)" : "var(--lumo-error-color)");
-            status.add(icon);
-            status.add(new Span(enabled ? "启用" : "禁用"));
+            icon.setSize("16px");
+            if (enabled) {
+                icon.getStyle().set("color", "var(--lumo-success-color)");
+            } else {
+                icon.getStyle().set("color", "var(--lumo-error-color)");
+            }
             
-            return status;
+            // 创建文本
+            Span textSpan = new Span(enabled ? "启用" : "禁用");
+            textSpan.getStyle().set("font-size", "var(--lumo-font-size-s)");
+            
+            statusLayout.add(icon, textSpan);
+            statusLayout.setFlexGrow(0, icon);
+            statusLayout.setFlexGrow(1, textSpan);
+            
+            return statusLayout;
         }).setHeader("状态").setWidth("100px").setFlexGrow(0);
         
         grid.addColumn(Role::getCreatedAt).setHeader("创建时间").setWidth("180px").setFlexGrow(0).setSortable(true);
@@ -186,16 +201,24 @@ public class RoleListView extends BaseListView<Role, RoleService> {
         nameSearchField.setPlaceholder("请输入角色名称");
         nameSearchField.setWidth("200px");
         nameSearchField.setClearButtonVisible(true);
+        // 通过Java代码设置label颜色，确保在获得焦点时可见
+        nameSearchField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
+        nameSearchField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
         codeSearchField = new TextField("角色编码");
         codeSearchField.setPlaceholder("请输入角色编码");
         codeSearchField.setWidth("200px");
         codeSearchField.setClearButtonVisible(true);
+        // 通过Java代码设置label颜色
+        codeSearchField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
+        codeSearchField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
         statusFilter = new ComboBox<>("状态");
         statusFilter.setItems("全部", "启用", "禁用");
         statusFilter.setValue("全部");
-        statusFilter.setWidth("150px");
+        statusFilter.setWidth("120px");
+        statusFilter.setClearButtonVisible(true); // 启用清除按钮
+        statusFilter.setPlaceholder("选择状态"); // 设置占位符
 
         searchButton = new Button("搜索", new Icon(VaadinIcon.SEARCH));
         searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -211,7 +234,59 @@ public class RoleListView extends BaseListView<Role, RoleService> {
         searchBar.setAlignItems(FlexComponent.Alignment.END);
         searchBar.setWidthFull();
         searchBar.addClassName("search-bar");
+        
+        // 添加调试信息：检查样式是否正确应用
+        addSearchBarDebugInfo();
+        
         return searchBar;
+    }
+    
+    /**
+     * 添加搜索栏调试信息
+     */
+    private void addSearchBarDebugInfo() {
+        getUI().ifPresent(ui -> ui.getPage().executeJs(
+            "console.log('=== RoleListView 搜索栏样式调试信息 ===');" +
+            "setTimeout(function() {" +
+            "  var nameField = document.querySelector('vaadin-text-field[placeholder=\"请输入角色名称\"]');" +
+            "  var codeField = document.querySelector('vaadin-text-field[placeholder=\"请输入角色编码\"]');" +
+            "  " +
+            "  function debugTextField(field, name) {" +
+            "    if (!field) {" +
+            "      console.log(name + ': 未找到元素');" +
+            "      return;" +
+            "    }" +
+            "    console.log(name + ':');" +
+            "    console.log('  元素标签: ' + field.tagName);" +
+            "    console.log('  是否有shadowRoot: ' + (field.shadowRoot ? '是' : '否'));" +
+            "    var cssVar = window.getComputedStyle(field).getPropertyValue('--lumo-text-field-label-color');" +
+            "    var vaadinVar = window.getComputedStyle(field).getPropertyValue('--vaadin-input-field-label-color');" +
+            "    console.log('  --lumo-text-field-label-color: ' + (cssVar || '未设置'));" +
+            "    console.log('  --vaadin-input-field-label-color: ' + (vaadinVar || '未设置'));" +
+            "    if (field.shadowRoot) {" +
+            "      var label = field.shadowRoot.querySelector('label');" +
+            "      if (label) {" +
+            "        var labelColor = window.getComputedStyle(label).color;" +
+            "        console.log('  Label元素: ' + label.tagName);" +
+            "        console.log('  Label颜色: ' + labelColor);" +
+            "        console.log('  Label类名: ' + label.className);" +
+            "        console.log('  Label内联样式: ' + (label.getAttribute('style') || '无'));" +
+            "      } else {" +
+            "        console.log('  Label元素: 未找到');" +
+            "      }" +
+            "      var labelPart = field.shadowRoot.querySelector('[part=\"label\"]');" +
+            "      if (labelPart) {" +
+            "        var labelPartColor = window.getComputedStyle(labelPart).color;" +
+            "        console.log('  Label Part颜色: ' + labelPartColor);" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "  " +
+            "  debugTextField(nameField, 'nameSearchField');" +
+            "  debugTextField(codeField, 'codeSearchField');" +
+            "  console.log('=== 搜索栏调试信息结束 ===');" +
+            "}, 500);"
+        ));
     }
 
     /**
@@ -375,7 +450,8 @@ public class RoleListView extends BaseListView<Role, RoleService> {
         
         if (statusFilter != null) {
             String status = statusFilter.getValue();
-            if (status != null && !"全部".equals(status)) {
+            // 如果清除选择（值为null或空），或者选择"全部"，则不设置状态筛选条件
+            if (status != null && !status.trim().isEmpty() && !"全部".equals(status)) {
                 currentQuery.setIsEnabled("启用".equals(status));
             }
         }

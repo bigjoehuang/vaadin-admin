@@ -78,7 +78,7 @@ public abstract class BaseFormDialog<T extends BaseEntity> extends Dialog {
         saveButton = new Button(isEdit ? "更新" : "保存");
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(e -> save());
-        // 主要按钮使用白色文字（在蓝色背景上）
+        // 主要按钮文字颜色（使用CSS变量，已改为黑色）
         saveButton.getElement().getStyle().set("color", "var(--lumo-primary-text-color)");
 
         // 将按钮添加到对话框的 footer
@@ -96,6 +96,29 @@ public abstract class BaseFormDialog<T extends BaseEntity> extends Dialog {
         content.setWidthFull();
 
         add(content);
+        
+        // 添加全局调试信息：检查CSS变量
+        addGlobalDebugInfo();
+    }
+    
+    /**
+     * 添加全局调试信息
+     */
+    private void addGlobalDebugInfo() {
+        getUI().ifPresent(ui -> ui.getPage().executeJs(
+            "console.log('=== BaseFormDialog 全局样式调试 ===');" +
+            "setTimeout(function() {" +
+            "  var root = document.documentElement;" +
+            "  var lumoVar = window.getComputedStyle(root).getPropertyValue('--lumo-text-field-label-color');" +
+            "  var vaadinVar = window.getComputedStyle(root).getPropertyValue('--vaadin-input-field-label-color');" +
+            "  var bodyTextColor = window.getComputedStyle(root).getPropertyValue('--lumo-body-text-color');" +
+            "  console.log('全局CSS变量:');" +
+            "  console.log('  --lumo-text-field-label-color: ' + (lumoVar || '未设置'));" +
+            "  console.log('  --vaadin-input-field-label-color: ' + (vaadinVar || '未设置'));" +
+            "  console.log('  --lumo-body-text-color: ' + (bodyTextColor || '未设置'));" +
+            "  console.log('=== 全局样式调试结束 ===');" +
+            "}, 300);"
+        ));
     }
 
     /**
