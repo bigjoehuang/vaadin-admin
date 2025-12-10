@@ -1,6 +1,8 @@
 package com.admin.service.impl;
 
 import com.admin.entity.Role;
+import com.admin.exception.BusinessException;
+import com.admin.exception.ErrorCode;
 import com.admin.mapper.RoleMapper;
 import com.admin.service.RoleService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +29,16 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public Role getRoleById(Long id) {
-        return roleMapper.selectById(id);
+        Role role = roleMapper.selectById(id);
+        if (role == null) {
+            throw new BusinessException(ErrorCode.ROLE_NOT_FOUND);
+        }
+        return role;
+    }
+
+    @Override
+    public Role getRoleByCode(String code) {
+        return roleMapper.selectByCode(code);
     }
 
     @Override
@@ -38,6 +49,11 @@ public class RoleServiceImpl implements RoleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void saveRole(Role role) {
+        // 检查角色编码是否已存在
+        Role existRole = roleMapper.selectByCode(role.getCode());
+        if (existRole != null) {
+            throw new BusinessException(ErrorCode.ROLE_ALREADY_EXISTS);
+        }
         roleMapper.insert(role);
         log.info("保存角色成功，ID: {}", role.getId());
     }
@@ -45,6 +61,10 @@ public class RoleServiceImpl implements RoleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateRole(Role role) {
+        Role existRole = roleMapper.selectById(role.getId());
+        if (existRole == null) {
+            throw new BusinessException(ErrorCode.ROLE_NOT_FOUND);
+        }
         roleMapper.updateById(role);
         log.info("更新角色成功，ID: {}", role.getId());
     }
@@ -52,6 +72,10 @@ public class RoleServiceImpl implements RoleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteRole(Long id) {
+        Role existRole = roleMapper.selectById(id);
+        if (existRole == null) {
+            throw new BusinessException(ErrorCode.ROLE_NOT_FOUND);
+        }
         roleMapper.deleteById(id);
         log.info("删除角色成功，ID: {}", id);
     }

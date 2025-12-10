@@ -16,6 +16,8 @@ import java.util.List;
 public interface RoleMapper {
     Role selectById(@Param("id") Long id);
 
+    Role selectByCode(@Param("code") String code);
+
     List<Role> selectAll();
 
     int insert(Role role);

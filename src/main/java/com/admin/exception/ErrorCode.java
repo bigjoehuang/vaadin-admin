@@ -63,6 +63,11 @@ public enum ErrorCode {
     ROLE_NOT_FOUND(2001, "角色不存在"),
 
     /**
+     * 角色已存在
+     */
+    ROLE_ALREADY_EXISTS(2002, "角色编码已存在"),
+
+    /**
      * 权限不存在
      */
     PERMISSION_NOT_FOUND(3001, "权限不存在");

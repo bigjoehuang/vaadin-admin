@@ -19,6 +19,12 @@
         WHERE id = #{id} AND deleted = 0
     </select>
 
+    <select id="selectByCode" resultMap="BaseResultMap">
+        SELECT id, createdAt, updatedAt, name, code, description, isEnabled, deleted
+        FROM sys_role
+        WHERE code = #{code} AND deleted = 0
+    </select>
+
     <select id="selectAll" resultMap="BaseResultMap">
         SELECT id, createdAt, updatedAt, name, code, description, isEnabled, deleted
         FROM sys_role

@@ -13,6 +13,8 @@ import java.util.List;
 public interface RoleService {
     Role getRoleById(Long id);
 
+    Role getRoleByCode(String code);
+
     List<Role> listRoles();
 
     void saveRole(Role role);
