@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/vaadin?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: root@local
+
+logging:
+  level:
+    com.admin: DEBUG
+    org.springframework.web: DEBUG
+    org.mybatis: DEBUG
+

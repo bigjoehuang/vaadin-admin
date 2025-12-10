@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.admin.mapper.OperationLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.admin.entity.OperationLog">
+        <id column="id" property="id"/>
+        <result column="createdAt" property="createdAt"/>
+        <result column="updatedAt" property="updatedAt"/>
+        <result column="userId" property="userId"/>
+        <result column="username" property="username"/>
+        <result column="operation" property="operation"/>
+        <result column="method" property="method"/>
+        <result column="params" property="params"/>
+        <result column="ip" property="ip"/>
+        <result column="location" property="location"/>
+        <result column="status" property="status"/>
+        <result column="errorMsg" property="errorMsg"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, createdAt, updatedAt, userId, username, operation, method, params, ip, location, status, errorMsg
+        FROM sys_operation_log
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT id, createdAt, updatedAt, userId, username, operation, method, params, ip, location, status, errorMsg
+        FROM sys_operation_log
+        ORDER BY createdAt DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_operation_log (createdAt, updatedAt, userId, username, operation, method, params, ip, location, status, errorMsg)
+        VALUES (NOW(), NOW(), #{userId}, #{username}, #{operation}, #{method}, #{params}, #{ip}, #{location}, #{status}, #{errorMsg})
+    </insert>
+
+</mapper>
+

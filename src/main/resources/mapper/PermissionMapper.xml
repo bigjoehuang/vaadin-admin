@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.admin.mapper.PermissionMapper">
+
+    <resultMap id="BaseResultMap" type="com.admin.entity.Permission">
+        <id column="id" property="id"/>
+        <result column="createdAt" property="createdAt"/>
+        <result column="updatedAt" property="updatedAt"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="type" property="type"/>
+        <result column="parentId" property="parentId"/>
+        <result column="path" property="path"/>
+        <result column="component" property="component"/>
+        <result column="icon" property="icon"/>
+        <result column="sort" property="sort"/>
+        <result column="isEnabled" property="isEnabled"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, createdAt, updatedAt, name, code, type, parentId, path, component, icon, sort, isEnabled, deleted
+        FROM sys_permission
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT id, createdAt, updatedAt, name, code, type, parentId, path, component, icon, sort, isEnabled, deleted
+        FROM sys_permission
+        WHERE deleted = 0
+        ORDER BY sort ASC, createdAt ASC
+    </select>
+
+    <select id="selectByRoleId" resultMap="BaseResultMap">
+        SELECT p.id, p.createdAt, p.updatedAt, p.name, p.code, p.type, p.parentId, p.path, p.component, p.icon, p.sort, p.isEnabled, p.deleted
+        FROM sys_permission p
+        INNER JOIN sys_role_permission rp ON p.id = rp.permissionId
+        WHERE rp.roleId = #{roleId} AND p.deleted = 0
+        ORDER BY p.sort ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_permission (createdAt, updatedAt, name, code, type, parentId, path, component, icon, sort, isEnabled, deleted)
+        VALUES (NOW(), NOW(), #{name}, #{code}, #{type}, #{parentId}, #{path}, #{component}, #{icon}, #{sort}, #{isEnabled}, 0)
+    </insert>
+
+    <update id="updateById">
+        UPDATE sys_permission
+        SET updatedAt = NOW(), name = #{name}, code = #{code}, type = #{type}, parentId = #{parentId},
+            path = #{path}, component = #{component}, icon = #{icon}, sort = #{sort}, isEnabled = #{isEnabled}
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE sys_permission SET deleted = 1, updatedAt = NOW() WHERE id = #{id}
+    </update>
+
+</mapper>
+

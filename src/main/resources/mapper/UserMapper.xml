@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.admin.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.admin.entity.User">
+        <id column="id" property="id"/>
+        <result column="createdAt" property="createdAt"/>
+        <result column="updatedAt" property="updatedAt"/>
+        <result column="userName" property="userName"/>
+        <result column="password" property="password"/>
+        <result column="nickname" property="nickname"/>
+        <result column="email" property="email"/>
+        <result column="phone" property="phone"/>
+        <result column="avatar" property="avatar"/>
+        <result column="isEnabled" property="isEnabled"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, createdAt, updatedAt, userName, password, nickname, email, phone, avatar, isEnabled, deleted
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_user
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectByUserName" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_user
+        WHERE userName = #{userName} AND deleted = 0
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_user
+        WHERE deleted = 0
+        ORDER BY createdAt DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_user (createdAt, updatedAt, userName, password, nickname, email, phone, avatar, isEnabled, deleted)
+        VALUES (NOW(), NOW(), #{userName}, #{password}, #{nickname}, #{email}, #{phone}, #{avatar}, #{isEnabled}, 0)
+    </insert>
+
+    <update id="updateById">
+        UPDATE sys_user
+        SET updatedAt = NOW(),
+            userName = #{userName},
+            password = #{password},
+            nickname = #{nickname},
+            email = #{email},
+            phone = #{phone},
+            avatar = #{avatar},
+            isEnabled = #{isEnabled}
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE sys_user
+        SET deleted = 1, updatedAt = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>
+

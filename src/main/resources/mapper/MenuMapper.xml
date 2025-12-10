@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.admin.mapper.MenuMapper">
+
+    <resultMap id="BaseResultMap" type="com.admin.entity.Menu">
+        <id column="id" property="id"/>
+        <result column="createdAt" property="createdAt"/>
+        <result column="updatedAt" property="updatedAt"/>
+        <result column="name" property="name"/>
+        <result column="path" property="path"/>
+        <result column="component" property="component"/>
+        <result column="icon" property="icon"/>
+        <result column="parentId" property="parentId"/>
+        <result column="sort" property="sort"/>
+        <result column="isEnabled" property="isEnabled"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, createdAt, updatedAt, name, path, component, icon, parentId, sort, isEnabled, deleted
+        FROM sys_menu
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT id, createdAt, updatedAt, name, path, component, icon, parentId, sort, isEnabled, deleted
+        FROM sys_menu
+        WHERE deleted = 0
+        ORDER BY sort ASC, createdAt ASC
+    </select>
+
+    <select id="selectByParentId" resultMap="BaseResultMap">
+        SELECT id, createdAt, updatedAt, name, path, component, icon, parentId, sort, isEnabled, deleted
+        FROM sys_menu
+        WHERE parentId = #{parentId} AND deleted = 0
+        ORDER BY sort ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_menu (createdAt, updatedAt, name, path, component, icon, parentId, sort, isEnabled, deleted)
+        VALUES (NOW(), NOW(), #{name}, #{path}, #{component}, #{icon}, #{parentId}, #{sort}, #{isEnabled}, 0)
+    </insert>
+
+    <update id="updateById">
+        UPDATE sys_menu
+        SET updatedAt = NOW(), name = #{name}, path = #{path}, component = #{component},
+            icon = #{icon}, parentId = #{parentId}, sort = #{sort}, isEnabled = #{isEnabled}
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE sys_menu SET deleted = 1, updatedAt = NOW() WHERE id = #{id}
+    </update>
+
+</mapper>
+
