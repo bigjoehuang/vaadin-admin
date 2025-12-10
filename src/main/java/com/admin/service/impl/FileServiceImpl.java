@@ -4,7 +4,8 @@ import com.admin.config.FileConfig;
 import com.admin.service.FileService;
 import com.admin.util.FileUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,11 +18,11 @@ import java.io.IOException;
  * @author Admin
  * @date 2024-01-01
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
 
+    private static final Logger log = LoggerFactory.getLogger(FileServiceImpl.class);
     private final FileConfig fileConfig;
 
     @Override

@@ -34,7 +34,6 @@ public class FileConfig {
      */
     private OssConfig oss = new OssConfig();
 
-    @Data
     public static class OssConfig {
         /**
          * 是否启用 OSS
@@ -60,6 +59,78 @@ public class FileConfig {
          * 存储桶名称
          */
         private String bucketName;
+
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(Boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getEndpoint() {
+            return endpoint;
+        }
+
+        public void setEndpoint(String endpoint) {
+            this.endpoint = endpoint;
+        }
+
+        public String getAccessKeyId() {
+            return accessKeyId;
+        }
+
+        public void setAccessKeyId(String accessKeyId) {
+            this.accessKeyId = accessKeyId;
+        }
+
+        public String getAccessKeySecret() {
+            return accessKeySecret;
+        }
+
+        public void setAccessKeySecret(String accessKeySecret) {
+            this.accessKeySecret = accessKeySecret;
+        }
+
+        public String getBucketName() {
+            return bucketName;
+        }
+
+        public void setBucketName(String bucketName) {
+            this.bucketName = bucketName;
+        }
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public String getMaxSize() {
+        return maxSize;
+    }
+
+    public void setMaxSize(String maxSize) {
+        this.maxSize = maxSize;
+    }
+
+    public String getAllowedTypes() {
+        return allowedTypes;
+    }
+
+    public void setAllowedTypes(String allowedTypes) {
+        this.allowedTypes = allowedTypes;
+    }
+
+    public OssConfig getOss() {
+        return oss;
+    }
+
+    public void setOss(OssConfig oss) {
+        this.oss = oss;
     }
 }
 

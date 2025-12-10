@@ -54,7 +54,6 @@ public class PageResult<T> implements Serializable {
     /**
      * 分页数据内部类
      */
-    @Data
     public static class PageData<T> implements Serializable {
         private static final long serialVersionUID = 1L;
 
@@ -77,6 +76,38 @@ public class PageResult<T> implements Serializable {
          * 每页大小
          */
         private Integer pageSize;
+
+        public List<T> getList() {
+            return list;
+        }
+
+        public void setList(List<T> list) {
+            this.list = list;
+        }
+
+        public Long getTotal() {
+            return total;
+        }
+
+        public void setTotal(Long total) {
+            this.total = total;
+        }
+
+        public Integer getPageNum() {
+            return pageNum;
+        }
+
+        public void setPageNum(Integer pageNum) {
+            this.pageNum = pageNum;
+        }
+
+        public Integer getPageSize() {
+            return pageSize;
+        }
+
+        public void setPageSize(Integer pageSize) {
+            this.pageSize = pageSize;
+        }
     }
 }
 

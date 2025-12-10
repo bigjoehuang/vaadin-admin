@@ -13,7 +13,6 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import com.vaadin.flow.theme.Theme;
 
 /**
  * 主布局
@@ -21,7 +20,6 @@ import com.vaadin.flow.theme.Theme;
  * @author Admin
  * @date 2024-01-01
  */
-@Theme("admin-theme")
 public class MainLayout extends AppLayout {
 
     public MainLayout() {

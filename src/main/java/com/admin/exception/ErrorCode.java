@@ -76,5 +76,13 @@ public enum ErrorCode {
      * 错误信息
      */
     private final String message;
+
+    public Integer getCode() {
+        return code;
+    }
+
+    public String getMessage() {
+        return message;
+    }
 }
 

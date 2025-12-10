@@ -4,7 +4,8 @@ import com.admin.entity.Role;
 import com.admin.mapper.RoleMapper;
 import com.admin.service.RoleService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,10 +17,11 @@ import java.util.List;
  * @author Admin
  * @date 2024-01-01
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RoleServiceImpl implements RoleService {
+
+    private static final Logger log = LoggerFactory.getLogger(RoleServiceImpl.class);
 
     private final RoleMapper roleMapper;
 

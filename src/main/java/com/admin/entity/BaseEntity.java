@@ -1,6 +1,5 @@
 package com.admin.entity;
 
-import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
@@ -10,7 +9,6 @@ import java.time.LocalDateTime;
  * @author Admin
  * @date 2024-01-01
  */
-@Data
 public abstract class BaseEntity {
     /**
      * 主键ID
@@ -26,5 +24,29 @@ public abstract class BaseEntity {
      * 更新时间
      */
     private LocalDateTime updatedAt;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }
 

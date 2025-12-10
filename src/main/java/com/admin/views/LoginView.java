@@ -7,7 +7,6 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.theme.Theme;
 
 /**
  * 登录视图
@@ -17,7 +16,6 @@ import com.vaadin.flow.theme.Theme;
  */
 @Route("/login")
 @PageTitle("登录")
-@Theme("admin-theme")
 public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
     private final LoginForm login = new LoginForm();

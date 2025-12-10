@@ -39,5 +39,14 @@ public class BusinessException extends RuntimeException {
         this.code = code;
         this.message = message;
     }
+
+    public Integer getCode() {
+        return code;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
 }
 
