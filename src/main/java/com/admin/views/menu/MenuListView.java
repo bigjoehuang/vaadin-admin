@@ -1,6 +1,7 @@
 package com.admin.views.menu;
 
 import com.admin.component.BaseFormDialog;
+import com.admin.constant.StatusConstant;
 import com.admin.dto.MenuQueryDTO;
 import com.admin.dto.PageRequest;
 import com.admin.entity.Menu;
@@ -8,6 +9,7 @@ import com.admin.service.MenuService;
 import com.admin.util.I18NUtil;
 import com.admin.util.NotificationUtil;
 import com.admin.util.PageResult;
+import com.admin.util.PaginationUtil;
 import com.admin.views.MainLayout;
 import com.admin.views.base.BaseListView;
 import com.vaadin.flow.component.button.Button;
@@ -45,10 +47,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
     private Button searchButton;
     private Button resetButton;
 
-    // 缓存的 i18n 值（Bug 2 修复）
-    private String i18nAll;
-    private String i18nEnabled;
-    private String i18nDisabled;
+    // 状态筛选器使用常量值，显示时使用 I18N 文本
 
     // 批量操作组件
     private Button batchDeleteButton;
@@ -72,11 +71,6 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
 
     public MenuListView(MenuService menuService) {
         super(menuService, Menu.class, I18NUtil.get("menu.title"), I18NUtil.get("menu.add"), "menu-list-view");
-
-        // 缓存 i18n 值（Bug 2 修复：避免每次搜索时重复调用）
-        i18nAll = I18NUtil.get("common.all");
-        i18nEnabled = I18NUtil.get("menu.enabled");
-        i18nDisabled = I18NUtil.get("menu.disabled");
 
         // 启用Grid多选模式
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
@@ -224,8 +218,20 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
         pathSearchField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
         statusFilter = new ComboBox<>(I18NUtil.get("menu.status"));
-        statusFilter.setItems(i18nAll, i18nEnabled, i18nDisabled);
-        statusFilter.setValue(i18nAll);
+        // 使用常量值作为选项值，避免使用 I18N 文本进行比较
+        statusFilter.setItems(StatusConstant.ALL, StatusConstant.ENABLED, StatusConstant.DISABLED);
+        // 设置显示文本生成器，使用 I18N 文本显示
+        statusFilter.setItemLabelGenerator(status -> {
+            if (StatusConstant.ALL.equals(status)) {
+                return I18NUtil.get("common.all");
+            } else if (StatusConstant.ENABLED.equals(status)) {
+                return I18NUtil.get("menu.enabled");
+            } else if (StatusConstant.DISABLED.equals(status)) {
+                return I18NUtil.get("menu.disabled");
+            }
+            return status;
+        });
+        statusFilter.setValue(StatusConstant.ALL);
         statusFilter.setWidth("120px");
         statusFilter.setClearButtonVisible(true);
         statusFilter.setPlaceholder(I18NUtil.get("menu.placeholder.status"));
@@ -297,9 +303,8 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
         nextPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         nextPageButton.addClickListener(e -> {
             if (currentPageResult != null && currentPageResult.getData() != null) {
-                long total = currentPageResult.getData().getTotal();
-                int totalPages = (int) Math.ceil((double) total / currentPageRequest.getPageSize());
-                if (currentPageRequest.getPageNum() < totalPages) {
+                int totalPages = PaginationUtil.calculateTotalPages(currentPageResult.getData());
+                if (PaginationUtil.hasNextPage(currentPageRequest.getPageNum(), totalPages)) {
                     currentPageRequest.setPageNum(currentPageRequest.getPageNum() + 1);
                     performSearch();
                 }
@@ -310,9 +315,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
         lastPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         lastPageButton.addClickListener(e -> {
             if (currentPageResult != null && currentPageResult.getData() != null) {
-                long total = currentPageResult.getData().getTotal();
-                int totalPages = (int) Math.ceil((double) total / currentPageRequest.getPageSize());
-                currentPageRequest.setPageNum(totalPages > 0 ? totalPages : 1);
+                currentPageRequest.setPageNum(PaginationUtil.getLastPageNum(currentPageResult.getData()));
                 performSearch();
             }
         });
@@ -409,17 +412,14 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
 
         if (statusFilter != null) {
             String status = statusFilter.getValue();
-            // #region agent log
-            try {
-                java.io.FileWriter fw = new java.io.FileWriter("/Users/hjoe/ai-creation/vaadin-admin/.cursor/debug.log", true);
-                fw.write(String.format("{\"id\":\"log_%d_menu_build\",\"timestamp\":%d,\"location\":\"MenuListView.java:401\",\"message\":\"buildQuery called\",\"data\":{\"status\":\"%s\",\"i18nAll\":\"%s\",\"i18nEnabled\":\"%s\",\"i18nDisabled\":\"%s\"},\"sessionId\":\"debug-session\",\"runId\":\"post-fix\",\"hypothesisId\":\"H4\"}\n", System.currentTimeMillis(), System.currentTimeMillis(), status != null ? status : "null", i18nAll, i18nEnabled, i18nDisabled));
-                fw.close();
-            } catch (Exception e) {}
-            // #endregion
-            // 如果清除选择（值为null或空），或者选择"全部"，则不设置状态筛选条件
-            // Bug 2 修复：使用缓存的 i18n 值，而不是每次调用 I18NUtil.get()
-            if (status != null && !status.trim().isEmpty() && !i18nAll.equals(status)) {
-                currentQuery.setIsEnabled(i18nEnabled.equals(status));
+            // 使用常量值进行比较，而不是 I18N 文本
+            // I18N 只用于展示，不用于逻辑判断
+            if (status != null && !StatusConstant.ALL.equals(status)) {
+                if (StatusConstant.ENABLED.equals(status)) {
+                    currentQuery.setIsEnabled(true);
+                } else if (StatusConstant.DISABLED.equals(status)) {
+                    currentQuery.setIsEnabled(false);
+                }
             }
         }
     }
@@ -435,7 +435,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
             pathSearchField.clear();
         }
         if (statusFilter != null) {
-            statusFilter.setValue(i18nAll);
+            statusFilter.setValue(StatusConstant.ALL);
         }
         currentPageRequest.setPageNum(1);
         performSearch();
@@ -547,15 +547,17 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
      */
     private void updatePaginationInfo() {
         if (currentPageResult != null && currentPageResult.getData() != null) {
-            long total = currentPageResult.getData().getTotal();
-            int pageNum = currentPageResult.getData().getPageNum();
-            int pageSize = currentPageResult.getData().getPageSize();
-            int totalPages = (int) Math.ceil((double) total / pageSize);
+            PageResult.PageData<Menu> pageData = currentPageResult.getData();
+            int pageNum = pageData.getPageNum();
+            int totalPages = PaginationUtil.calculateTotalPages(pageData);
 
-            pageInfo.setText(I18NUtil.get("pagination.info", pageNum, totalPages > 0 ? totalPages : 1, total));
+            pageInfo.setText(I18NUtil.get("pagination.info", pageNum, totalPages > 0 ? totalPages : 1, pageData.getTotal()));
 
             // 更新按钮状态
-            updatePaginationButtons(pageNum > 1, pageNum < totalPages);
+            updatePaginationButtons(
+                PaginationUtil.hasPrevPage(pageData),
+                PaginationUtil.hasNextPage(pageData)
+            );
         }
     }
 
