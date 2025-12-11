@@ -36,16 +36,24 @@ public class DataProviderUtil {
         return new AbstractBackEndDataProvider<T, Void>() {
             @Override
             protected Stream<T> fetchFromBackEnd(Query<T, Void> query) {
-                // 获取当前分页请求
+                // 必须调用 getLimit() 或 getPageSize() 以满足 Vaadin 的契约要求
+                int limit = query.getLimit();
+                int offset = query.getOffset();
+                
+                // 计算页码（从1开始）
+                int pageSize = limit > 0 ? limit : 10; // 默认每页10条
+                int pageNum = (offset / pageSize) + 1;
+                
+                // 获取当前分页请求（用于获取排序字段等额外信息）
                 PageRequest pageRequest = pageRequestSupplier.get();
                 if (pageRequest == null) {
                     pageRequest = new PageRequest();
                 }
                 
-                // 创建一个新的 PageRequest 副本，避免修改原始对象
+                // 创建一个新的 PageRequest 副本，使用 Vaadin Query 的分页参数
                 PageRequest request = new PageRequest();
-                request.setPageNum(pageRequest.getPageNum());
-                request.setPageSize(pageRequest.getPageSize());
+                request.setPageNum(pageNum);
+                request.setPageSize(pageSize);
                 request.setSortField(pageRequest.getSortField());
                 request.setSortOrder(pageRequest.getSortOrder());
                 

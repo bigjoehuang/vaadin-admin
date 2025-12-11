@@ -171,13 +171,28 @@ vaadin-confirm-dialog vaadin-button::part(label) {
   color: var(--lumo-body-text-color) !important;
 }
 
+/* 取消按钮（tertiary主题）必须使用深色文字，不能是白色 */
 vaadin-confirm-dialog vaadin-button[theme~="tertiary"] {
-  color: var(--lumo-body-text-color) !important;
+  color: #1a1a1a !important;
   border: 1px solid var(--lumo-contrast-30pct) !important;
+  background-color: transparent !important;
 }
 
 vaadin-confirm-dialog vaadin-button[theme~="tertiary"]::part(label) {
-  color: var(--lumo-body-text-color) !important;
+  color: #1a1a1a !important;
+}
+
+/* 确保取消按钮的所有部分都是深色 */
+vaadin-confirm-dialog vaadin-button[theme~="tertiary"]::before,
+vaadin-confirm-dialog vaadin-button[theme~="tertiary"]::after {
+  color: #1a1a1a !important;
+}
+
+/* 确保确认对话框按钮布局：取消在左，确认（删除）在右 */
+vaadin-confirm-dialog::part(buttons) {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
 }
 
 vaadin-confirm-dialog vaadin-button[theme~="primary"] {
@@ -350,6 +365,15 @@ vaadin-app-layout::part(navbar) .theme-toggle-button vaadin-icon::part(svg) {
 [theme~="dark"] {
   /* 暗色主题下的主色调调整 */
   --lumo-primary-text-color: #ffffff; /* 暗色主题下主色按钮文字改为白色 */
+}
+
+/* 暗色主题下确认对话框的取消按钮文字颜色 */
+[theme~="dark"] vaadin-confirm-dialog vaadin-button[theme~="tertiary"] {
+  color: #ffffff !important;
+}
+
+[theme~="dark"] vaadin-confirm-dialog vaadin-button[theme~="tertiary"]::part(label) {
+  color: #ffffff !important;
 }
 
 /* 暗色主题下的登录页面样式 */

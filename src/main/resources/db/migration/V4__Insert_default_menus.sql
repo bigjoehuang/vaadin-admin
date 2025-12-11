@@ -55,3 +55,4 @@ FROM sys_role r, sys_permission p
 WHERE r.code = 'SUPER_ADMIN'
 ON DUPLICATE KEY UPDATE roleId = roleId;
 
+

@@ -58,11 +58,22 @@ public class UIRefreshUtil {
         if (currentUI != null) {
             // 使用 JavaScript 触发页面重新渲染
             // 注意：这不会完全刷新页面，只是触发组件重新渲染
+            // 安全地调用 requestUpdate，只对支持该方法的元素调用
             currentUI.getPage().executeJs(
                 "// 触发所有组件重新渲染\n" +
-                "document.querySelectorAll('vaadin-button, vaadin-text-field, vaadin-combo-box').forEach(el => {\n" +
-                "  if (el.shadowRoot) {\n" +
-                "    el.requestUpdate();\n" +
+                "document.querySelectorAll('vaadin-button, vaadin-text-field, vaadin-combo-box, vaadin-select, vaadin-grid').forEach(el => {\n" +
+                "  try {\n" +
+                "    // 检查元素是否有 requestUpdate 方法（Lit 元素）\n" +
+                "    if (el.shadowRoot && typeof el.requestUpdate === 'function') {\n" +
+                "      el.requestUpdate();\n" +
+                "    }\n" +
+                "    // 对于其他元素，尝试触发自定义事件来刷新\n" +
+                "    if (el.dispatchEvent) {\n" +
+                "      el.dispatchEvent(new CustomEvent('locale-change', { bubbles: true }));\n" +
+                "    }\n" +
+                "  } catch (e) {\n" +
+                "    // 忽略错误，继续处理下一个元素\n" +
+                "    console.debug('Failed to update element:', e);\n" +
                 "  }\n" +
                 "});"
             );

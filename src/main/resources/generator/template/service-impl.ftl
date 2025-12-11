@@ -56,3 +56,4 @@ public class ${entityName}ServiceImpl implements ${entityName}Service {
 }
 
 
+
