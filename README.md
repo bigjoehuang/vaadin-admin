@@ -398,6 +398,7 @@ vaadin-admin/
 - [热重载配置](LIVE_RELOAD_SETUP.md) - Java 热重载配置说明
 - [国际化使用](I18N_USAGE_GUIDE.md) - I18N 使用规范和注意事项
 - [问题排查](TROUBLESHOOTING.md) - 应用连接问题排查指南
+- [Vaadin MCP Server 配置](VAADIN_MCP_SETUP.md) - Vaadin 官方 MCP Server 配置指南
 
 ## 许可证
 
