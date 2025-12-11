@@ -3,10 +3,12 @@ package com.admin.service.impl;
 import com.admin.dto.MenuQueryDTO;
 import com.admin.dto.PageRequest;
 import com.admin.entity.Menu;
+import com.admin.entity.Permission;
 import com.admin.exception.BusinessException;
 import com.admin.exception.ErrorCode;
 import com.admin.mapper.MenuMapper;
 import com.admin.service.MenuService;
+import com.admin.service.PermissionService;
 import com.admin.util.PageResult;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -17,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 菜单服务实现
@@ -30,6 +34,7 @@ import java.util.List;
 public class MenuServiceImpl implements MenuService {
 
     private final MenuMapper menuMapper;
+    private final PermissionService permissionService;
 
     @Override
     public Menu getMenuById(Long id) {
@@ -80,11 +85,45 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public List<Menu> getMenuTree() {
-        // 获取所有菜单
-        List<Menu> allMenus = menuMapper.selectAll();
+        // 获取所有启用的菜单
+        MenuQueryDTO query = new MenuQueryDTO();
+        query.setIsEnabled(true);
+        List<Menu> allMenus = menuMapper.selectByCondition(query);
         
         // 构建菜单树
         return buildMenuTree(allMenus, null);
+    }
+
+    @Override
+    public List<Menu> getMenuTreeByUserId(Long userId) {
+        // 获取所有启用的菜单
+        MenuQueryDTO query = new MenuQueryDTO();
+        query.setIsEnabled(true);
+        List<Menu> allMenus = menuMapper.selectByCondition(query);
+        
+        // 获取用户权限
+        List<Permission> userPermissions = permissionService.getPermissionsByUserId(userId);
+        Set<String> permissionPaths = userPermissions.stream()
+                .map(Permission::getPath)
+                .filter(path -> path != null && !path.isEmpty())
+                .collect(Collectors.toSet());
+        
+        // 过滤菜单：如果菜单有 path，检查用户是否有访问权限
+        // 如果没有 path 或者是根菜单，则显示
+        List<Menu> filteredMenus = allMenus.stream()
+                .filter(menu -> {
+                    String menuPath = menu.getPath();
+                    // 如果菜单没有 path，或者 path 在用户权限中，则显示
+                    if (menuPath == null || menuPath.isEmpty()) {
+                        return true; // 根菜单或没有 path 的菜单都显示
+                    }
+                    // 检查用户是否有访问该 path 的权限
+                    return permissionPaths.contains(menuPath);
+                })
+                .collect(Collectors.toList());
+        
+        // 构建菜单树
+        return buildMenuTree(filteredMenus, null);
     }
 
     /**

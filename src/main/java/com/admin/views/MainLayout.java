@@ -1,9 +1,12 @@
 package com.admin.views;
 
+import com.admin.entity.Menu;
+import com.admin.service.MenuService;
 import com.admin.service.UserService;
 import com.admin.util.I18NUtil;
 import com.admin.util.LocaleUtil;
 import com.admin.util.ThemeUtil;
+import com.admin.util.UIRefreshUtil;
 import com.admin.util.UserUtil;
 import com.admin.views.menu.MenuListView;
 import com.admin.views.role.RoleListView;
@@ -27,6 +30,8 @@ import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 import com.vaadin.flow.router.RouterLink;
+
+import java.util.List;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import com.vaadin.flow.component.dependency.JsModule;
 
@@ -43,9 +48,11 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
     private static final String LAST_ROUTE_KEY = "lastRoute";
     private Tabs tabs;
     private final UserService userService;
+    private final MenuService menuService;
 
-    public MainLayout(UserService userService) {
+    public MainLayout(UserService userService, MenuService menuService) {
         this.userService = userService;
+        this.menuService = menuService;
         createHeader();
         createDrawer();
         // 设置菜单栏宽度（通过 CSS 变量）
@@ -110,8 +117,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         localeButton.setAriaLabel(I18NUtil.get("locale.switch"));
         localeButton.addClickListener(e -> {
             LocaleUtil.toggleLocale();
-            // 刷新页面以应用新的语言
-            getUI().ifPresent(ui -> ui.getPage().reload());
+            // 刷新 UI 文本，无需刷新页面
+            refreshUIText();
         });
         localeButton.addClassName("locale-toggle-button");
         return localeButton;
@@ -247,12 +254,97 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
     private Tabs createNavigation() {
         tabs = new Tabs();
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
-        tabs.add(createTab(I18NUtil.get("main.layout.dashboard"), DashboardView.class));
-        tabs.add(createTab(I18NUtil.get("main.layout.user.management"), UserListView.class));
-        tabs.add(createTab(I18NUtil.get("main.layout.role.management"), RoleListView.class));
-        tabs.add(createTab(I18NUtil.get("main.layout.menu.management"), MenuListView.class));
-        tabs.add(createTab(I18NUtil.get("main.layout.operation.log"), com.admin.views.operationlog.OperationLogListView.class));
+        
+        // 从数据库动态加载菜单
+        try {
+            Long userId = UserUtil.getCurrentUserId();
+            if (userId != null) {
+                List<Menu> menuTree = menuService.getMenuTreeByUserId(userId);
+                for (Menu menu : menuTree) {
+                    Tab tab = createTabFromMenu(menu);
+                    if (tab != null) {
+                        tabs.add(tab);
+                    }
+                }
+            } else {
+                // 如果无法获取用户ID，使用默认菜单（向后兼容）
+                tabs.add(createTab(I18NUtil.get("main.layout.dashboard"), DashboardView.class));
+                tabs.add(createTab(I18NUtil.get("main.layout.user.management"), UserListView.class));
+                tabs.add(createTab(I18NUtil.get("main.layout.role.management"), RoleListView.class));
+                tabs.add(createTab(I18NUtil.get("main.layout.menu.management"), MenuListView.class));
+                tabs.add(createTab(I18NUtil.get("main.layout.operation.log"), com.admin.views.operationlog.OperationLogListView.class));
+            }
+        } catch (Exception e) {
+            // 如果加载菜单失败，使用默认菜单（向后兼容）
+            tabs.add(createTab(I18NUtil.get("main.layout.dashboard"), DashboardView.class));
+            tabs.add(createTab(I18NUtil.get("main.layout.user.management"), UserListView.class));
+            tabs.add(createTab(I18NUtil.get("main.layout.role.management"), RoleListView.class));
+            tabs.add(createTab(I18NUtil.get("main.layout.menu.management"), MenuListView.class));
+            tabs.add(createTab(I18NUtil.get("main.layout.operation.log"), com.admin.views.operationlog.OperationLogListView.class));
+        }
+        
         return tabs;
+    }
+
+    /**
+     * 从菜单创建 Tab
+     */
+    private Tab createTabFromMenu(Menu menu) {
+        if (menu == null || menu.getPath() == null || menu.getPath().isEmpty()) {
+            return null;
+        }
+        
+        // 根据 path 查找对应的 View 类
+        Class<? extends com.vaadin.flow.component.Component> viewClass = getViewClassByPath(menu.getPath());
+        if (viewClass == null) {
+            return null;
+        }
+        
+        String menuName = menu.getName() != null ? menu.getName() : menu.getPath();
+        RouterLink link = new RouterLink(menuName, viewClass);
+        link.setTabIndex(-1);
+        
+        // 如果有图标，添加图标
+        if (menu.getIcon() != null && !menu.getIcon().isEmpty()) {
+            try {
+                VaadinIcon icon = VaadinIcon.valueOf(menu.getIcon().toUpperCase().replace(":", "_"));
+                link.addComponentAsFirst(new Icon(icon));
+            } catch (Exception e) {
+                // 如果图标解析失败，忽略
+            }
+        }
+        
+        return new Tab(link);
+    }
+    
+    /**
+     * 根据 path 获取 View 类
+     * 这里使用硬编码映射，后续可以扩展为从配置或注解读取
+     */
+    private Class<? extends com.vaadin.flow.component.Component> getViewClassByPath(String path) {
+        // 移除前导斜杠
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        
+        // Path 到 View 类的映射
+        switch (path) {
+            case "":
+            case "dashboard":
+                return DashboardView.class;
+            case "users":
+                return UserListView.class;
+            case "roles":
+                return RoleListView.class;
+            case "menus":
+                return MenuListView.class;
+            case "operationlog":
+            case "operation-log":
+                return com.admin.views.operationlog.OperationLogListView.class;
+            default:
+                // 如果找不到映射，返回 null
+                return null;
+        }
     }
 
     private Tab createTab(String viewName, Class<? extends com.vaadin.flow.component.Component> viewClass) {
@@ -291,6 +383,49 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
                     route
                 );
             });
+        }
+    }
+
+    /**
+     * 刷新 UI 文本
+     * 切换语言后调用此方法更新所有文本
+     */
+    private void refreshUIText() {
+        // 刷新整个 MainLayout 的文本
+        UIRefreshUtil.refreshUIText(this);
+        
+        // 触发 UI 刷新事件
+        UIRefreshUtil.triggerUIRefresh();
+        
+        // 重新创建导航菜单以更新菜单文本
+        if (tabs != null) {
+            tabs.removeAll();
+            try {
+                Long userId = UserUtil.getCurrentUserId();
+                if (userId != null) {
+                    List<Menu> menuTree = menuService.getMenuTreeByUserId(userId);
+                    for (Menu menu : menuTree) {
+                        Tab tab = createTabFromMenu(menu);
+                        if (tab != null) {
+                            tabs.add(tab);
+                        }
+                    }
+                } else {
+                    // 如果无法获取用户ID，使用默认菜单
+                    tabs.add(createTab(I18NUtil.get("main.layout.dashboard"), DashboardView.class));
+                    tabs.add(createTab(I18NUtil.get("main.layout.user.management"), UserListView.class));
+                    tabs.add(createTab(I18NUtil.get("main.layout.role.management"), RoleListView.class));
+                    tabs.add(createTab(I18NUtil.get("main.layout.menu.management"), MenuListView.class));
+                    tabs.add(createTab(I18NUtil.get("main.layout.operation.log"), com.admin.views.operationlog.OperationLogListView.class));
+                }
+            } catch (Exception e) {
+                // 如果加载菜单失败，使用默认菜单
+                tabs.add(createTab(I18NUtil.get("main.layout.dashboard"), DashboardView.class));
+                tabs.add(createTab(I18NUtil.get("main.layout.user.management"), UserListView.class));
+                tabs.add(createTab(I18NUtil.get("main.layout.role.management"), RoleListView.class));
+                tabs.add(createTab(I18NUtil.get("main.layout.menu.management"), MenuListView.class));
+                tabs.add(createTab(I18NUtil.get("main.layout.operation.log"), com.admin.views.operationlog.OperationLogListView.class));
+            }
         }
     }
 

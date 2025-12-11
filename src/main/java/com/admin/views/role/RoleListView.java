@@ -1,22 +1,24 @@
 package com.admin.views.role;
 
 import com.admin.component.BaseFormDialog;
+import com.admin.component.ConfirmDialogUtil;
 import com.admin.constant.StatusConstant;
 import com.admin.dto.PageRequest;
 import com.admin.dto.RoleQueryDTO;
 import com.admin.entity.Role;
 import com.admin.service.PermissionService;
 import com.admin.service.RoleService;
+import com.admin.util.DataProviderUtil;
 import com.admin.util.I18NUtil;
 import com.admin.util.NotificationUtil;
 import com.admin.util.PageResult;
 import com.admin.util.PaginationUtil;
 import com.admin.views.MainLayout;
 import com.admin.views.base.BaseListView;
+import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -70,6 +72,9 @@ public class RoleListView extends BaseListView<Role, RoleService> implements Has
     // 当前分页数据
     private PageResult<Role> currentPageResult;
     
+    // DataProvider
+    private DataProvider<Role, Void> dataProvider;
+    
     private final PermissionService permissionService;
 
     public RoleListView(RoleService roleService, PermissionService permissionService) {
@@ -78,6 +83,9 @@ public class RoleListView extends BaseListView<Role, RoleService> implements Has
         
         // 启用Grid多选模式
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        
+        // 初始化 DataProvider
+        initDataProvider();
         
         // 重新构建布局
         removeAll();
@@ -173,11 +181,34 @@ public class RoleListView extends BaseListView<Role, RoleService> implements Has
 
     @Override
     protected List<Role> getListData() {
-        // 使用分页查询，这里返回空列表，实际数据通过分页组件加载
-        if (currentPageResult != null && currentPageResult.getData() != null) {
-            return currentPageResult.getData().getList();
-        }
+        // 使用 DataProvider 懒加载，这里返回空列表
         return new ArrayList<>();
+    }
+    
+    /**
+     * 初始化 DataProvider
+     */
+    private void initDataProvider() {
+        // 确保分页请求已初始化
+        if (currentPageRequest == null) {
+            currentPageRequest = new PageRequest();
+        }
+        
+        // 设置 Grid 的 pageSize 与分页请求一致
+        grid.setPageSize(currentPageRequest.getPageSize());
+        
+        dataProvider = DataProviderUtil.createPageDataProvider(
+            () -> currentQuery != null ? currentQuery : new RoleQueryDTO(),
+            () -> {
+                // 确保返回的分页请求不为 null
+                if (currentPageRequest == null) {
+                    currentPageRequest = new PageRequest();
+                }
+                return currentPageRequest;
+            },
+            service::pageRoles
+        );
+        grid.setDataProvider(dataProvider);
     }
 
     @Override
@@ -424,25 +455,21 @@ public class RoleListView extends BaseListView<Role, RoleService> implements Has
             if (currentQuery == null) {
                 currentQuery = new RoleQueryDTO();
             }
+
+            // 刷新 DataProvider（懒加载会自动从 Service 获取数据）
+            if (dataProvider != null) {
+                dataProvider.refreshAll();
+            }
             
-            // 执行分页查询
+            // 获取当前页数据用于更新分页信息
             currentPageResult = service.pageRoles(currentPageRequest, currentQuery);
-            
-            // 更新Grid数据
-            if (currentPageResult != null && currentPageResult.getData() != null) {
-                List<Role> roles = currentPageResult.getData().getList();
-                grid.setItems(roles);
-                
-                // 更新分页信息（如果组件已初始化）
-                if (pageInfo != null) {
-                    updatePaginationInfo();
-                }
-            } else {
-                grid.setItems(new ArrayList<>());
-                if (pageInfo != null) {
-                    pageInfo.setText(I18NUtil.get("common.noData"));
-                    updatePaginationButtons(false, false);
-                }
+
+            // 更新分页信息（如果组件已初始化）
+            if (pageInfo != null && currentPageResult != null && currentPageResult.getData() != null) {
+                updatePaginationInfo();
+            } else if (pageInfo != null) {
+                pageInfo.setText(I18NUtil.get("common.noData"));
+                updatePaginationButtons(false, false);
             }
             
             // 监听选中项变化，显示/隐藏批量操作栏（如果组件已初始化）
@@ -540,31 +567,21 @@ public class RoleListView extends BaseListView<Role, RoleService> implements Has
         List<Long> ids = selected.stream().map(Role::getId).collect(Collectors.toList());
         String names = selected.stream().map(Role::getName).collect(Collectors.joining("、"));
 
-        ConfirmDialog confirmDialog = new ConfirmDialog();
-        confirmDialog.setHeader(I18NUtil.get("confirm.batch.delete.title"));
-        confirmDialog.setText(I18NUtil.get("role.batch.delete.confirm", ids.size(), names));
-        confirmDialog.setConfirmText(I18NUtil.get("common.delete"));
-        confirmDialog.setConfirmButtonTheme("error primary");
-        confirmDialog.setCancelText(I18NUtil.get("common.cancel"));
-        confirmDialog.setCancelButtonTheme("tertiary");
-        confirmDialog.setCancelable(true);
-
-        confirmDialog.addConfirmListener(e -> {
-            try {
-                service.batchDeleteRoles(ids);
-                NotificationUtil.showSuccess(I18NUtil.get("role.batch.delete.success", ids.size()));
-                grid.deselectAll();
-                performSearch();
-            } catch (Exception ex) {
-                NotificationUtil.showError(I18NUtil.get("role.batch.delete.failed", ex.getMessage()));
+        ConfirmDialogUtil.createBatchDeleteDialog(
+            I18NUtil.get("role.title"),
+            ids.size(),
+            names,
+            () -> {
+                try {
+                    service.batchDeleteRoles(ids);
+                    NotificationUtil.showSuccess(I18NUtil.get("role.batch.delete.success", ids.size()));
+                    grid.deselectAll();
+                    performSearch();
+                } catch (Exception ex) {
+                    NotificationUtil.showError(I18NUtil.get("role.batch.delete.failed", ex.getMessage()));
+                }
             }
-        });
-
-        confirmDialog.addCancelListener(e -> {
-            // 用户点击取消，关闭对话框
-        });
-
-        confirmDialog.open();
+        ).open();
     }
 
     /**
@@ -578,35 +595,31 @@ public class RoleListView extends BaseListView<Role, RoleService> implements Has
         }
 
         List<Long> ids = selected.stream().map(Role::getId).collect(Collectors.toList());
+        String entityName = I18NUtil.get("role.title");
         String actionKey = isEnabled ? "role.batch.enable" : "role.batch.disable";
-        String action = isEnabled ? I18NUtil.get("role.enabled") : I18NUtil.get("role.disabled");
 
-        ConfirmDialog confirmDialog = new ConfirmDialog();
-        String confirmKey = isEnabled ? "confirm.batch.enable" : "confirm.batch.disable";
-        confirmDialog.setHeader(I18NUtil.get(confirmKey + ".title"));
-        confirmDialog.setText(I18NUtil.get(confirmKey + ".text", ids.size(), I18NUtil.get("role.title")));
-        confirmDialog.setConfirmText(action);
-        confirmDialog.setConfirmButtonTheme("primary");
-        confirmDialog.setCancelText(I18NUtil.get("common.cancel"));
-        confirmDialog.setCancelButtonTheme("tertiary");
-        confirmDialog.setCancelable(true);
-
-        confirmDialog.addConfirmListener(e -> {
-            try {
-                service.batchUpdateRoleStatus(ids, isEnabled);
-                NotificationUtil.showSuccess(I18NUtil.get(actionKey + ".success", ids.size()));
-                grid.deselectAll();
-                performSearch();
-            } catch (Exception ex) {
-                NotificationUtil.showError(I18NUtil.get(actionKey + ".failed", ex.getMessage()));
-            }
-        });
-
-        confirmDialog.addCancelListener(e -> {
-            // 用户点击取消，关闭对话框
-        });
-
-        confirmDialog.open();
+        (isEnabled ? 
+            ConfirmDialogUtil.createBatchEnableDialog(entityName, ids.size(), () -> {
+                try {
+                    service.batchUpdateRoleStatus(ids, true);
+                    NotificationUtil.showSuccess(I18NUtil.get(actionKey + ".success", ids.size()));
+                    grid.deselectAll();
+                    performSearch();
+                } catch (Exception ex) {
+                    NotificationUtil.showError(I18NUtil.get(actionKey + ".failed", ex.getMessage()));
+                }
+            }) :
+            ConfirmDialogUtil.createBatchDisableDialog(entityName, ids.size(), () -> {
+                try {
+                    service.batchUpdateRoleStatus(ids, false);
+                    NotificationUtil.showSuccess(I18NUtil.get(actionKey + ".success", ids.size()));
+                    grid.deselectAll();
+                    performSearch();
+                } catch (Exception ex) {
+                    NotificationUtil.showError(I18NUtil.get(actionKey + ".failed", ex.getMessage()));
+                }
+            })
+        ).open();
     }
 
     /**

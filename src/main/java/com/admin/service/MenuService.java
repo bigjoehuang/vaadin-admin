@@ -44,6 +44,14 @@ public interface MenuService {
      */
     List<Menu> getMenuTree();
 
+    /**
+     * 根据用户ID获取菜单树（考虑权限）
+     *
+     * @param userId 用户ID
+     * @return 菜单树列表
+     */
+    List<Menu> getMenuTreeByUserId(Long userId);
+
     void saveMenu(Menu menu);
 
     void updateMenu(Menu menu);

@@ -1,21 +1,23 @@
 package com.admin.views.menu;
 
 import com.admin.component.BaseFormDialog;
+import com.admin.component.ConfirmDialogUtil;
 import com.admin.constant.StatusConstant;
 import com.admin.dto.MenuQueryDTO;
 import com.admin.dto.PageRequest;
 import com.admin.entity.Menu;
 import com.admin.service.MenuService;
+import com.admin.util.DataProviderUtil;
 import com.admin.util.I18NUtil;
 import com.admin.util.NotificationUtil;
 import com.admin.util.PageResult;
 import com.admin.util.PaginationUtil;
 import com.admin.views.MainLayout;
 import com.admin.views.base.BaseListView;
+import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -68,12 +70,18 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
 
     // 当前分页数据
     private PageResult<Menu> currentPageResult;
+    
+    // DataProvider
+    private DataProvider<Menu, Void> dataProvider;
 
     public MenuListView(MenuService menuService) {
         super(menuService, Menu.class, I18NUtil.get("menu.title"), I18NUtil.get("menu.add"), "menu-list-view");
 
         // 启用Grid多选模式
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
+
+        // 初始化 DataProvider
+        initDataProvider();
 
         // 重新构建布局
         removeAll();
@@ -159,11 +167,34 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
 
     @Override
     protected List<Menu> getListData() {
-        // 使用分页查询，这里返回空列表，实际数据通过分页组件加载
-        if (currentPageResult != null && currentPageResult.getData() != null) {
-            return currentPageResult.getData().getList();
-        }
+        // 使用 DataProvider 懒加载，这里返回空列表
         return new ArrayList<>();
+    }
+    
+    /**
+     * 初始化 DataProvider
+     */
+    private void initDataProvider() {
+        // 确保分页请求已初始化
+        if (currentPageRequest == null) {
+            currentPageRequest = new PageRequest();
+        }
+        
+        // 设置 Grid 的 pageSize 与分页请求一致
+        grid.setPageSize(currentPageRequest.getPageSize());
+        
+        dataProvider = DataProviderUtil.createPageDataProvider(
+            () -> currentQuery != null ? currentQuery : new MenuQueryDTO(),
+            () -> {
+                // 确保返回的分页请求不为 null
+                if (currentPageRequest == null) {
+                    currentPageRequest = new PageRequest();
+                }
+                return currentPageRequest;
+            },
+            service::pageMenus
+        );
+        grid.setDataProvider(dataProvider);
     }
 
     @Override
@@ -358,24 +389,20 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
                 currentQuery = new MenuQueryDTO();
             }
 
-            // 执行分页查询
+            // 刷新 DataProvider（懒加载会自动从 Service 获取数据）
+            if (dataProvider != null) {
+                dataProvider.refreshAll();
+            }
+            
+            // 获取当前页数据用于更新分页信息
             currentPageResult = service.pageMenus(currentPageRequest, currentQuery);
 
-            // 更新Grid数据
-            if (currentPageResult != null && currentPageResult.getData() != null) {
-                List<Menu> menus = currentPageResult.getData().getList();
-                grid.setItems(menus);
-
-                // 更新分页信息（如果组件已初始化）
-                if (pageInfo != null) {
-                    updatePaginationInfo();
-                }
-            } else {
-                grid.setItems(new ArrayList<>());
-                if (pageInfo != null) {
-                    pageInfo.setText(I18NUtil.get("common.noData"));
-                    updatePaginationButtons(false, false);
-                }
+            // 更新分页信息（如果组件已初始化）
+            if (pageInfo != null && currentPageResult != null && currentPageResult.getData() != null) {
+                updatePaginationInfo();
+            } else if (pageInfo != null) {
+                pageInfo.setText(I18NUtil.get("common.noData"));
+                updatePaginationButtons(false, false);
             }
 
             // 监听选中项变化，显示/隐藏批量操作栏（如果组件已初始化）
@@ -473,31 +500,21 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
         List<Long> ids = selected.stream().map(Menu::getId).collect(Collectors.toList());
         String names = selected.stream().map(Menu::getName).collect(Collectors.joining("、"));
 
-        ConfirmDialog confirmDialog = new ConfirmDialog();
-        confirmDialog.setHeader(I18NUtil.get("confirm.batch.delete.title"));
-        confirmDialog.setText(I18NUtil.get("menu.batch.delete.confirm", ids.size(), names));
-        confirmDialog.setConfirmText(I18NUtil.get("common.delete"));
-        confirmDialog.setConfirmButtonTheme("error primary");
-        confirmDialog.setCancelText(I18NUtil.get("common.cancel"));
-        confirmDialog.setCancelButtonTheme("tertiary");
-        confirmDialog.setCancelable(true);
-
-        confirmDialog.addConfirmListener(e -> {
-            try {
-                service.batchDeleteMenus(ids);
-                NotificationUtil.showSuccess(I18NUtil.get("menu.batch.delete.success", ids.size()));
-                grid.deselectAll();
-                performSearch();
-            } catch (Exception ex) {
-                NotificationUtil.showError(I18NUtil.get("menu.batch.delete.failed", ex.getMessage()));
+        ConfirmDialogUtil.createBatchDeleteDialog(
+            I18NUtil.get("menu.title"),
+            ids.size(),
+            names,
+            () -> {
+                try {
+                    service.batchDeleteMenus(ids);
+                    NotificationUtil.showSuccess(I18NUtil.get("menu.batch.delete.success", ids.size()));
+                    grid.deselectAll();
+                    performSearch();
+                } catch (Exception ex) {
+                    NotificationUtil.showError(I18NUtil.get("menu.batch.delete.failed", ex.getMessage()));
+                }
             }
-        });
-
-        confirmDialog.addCancelListener(e -> {
-            // 用户点击取消，关闭对话框
-        });
-
-        confirmDialog.open();
+        ).open();
     }
 
     /**
@@ -511,35 +528,31 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
         }
 
         List<Long> ids = selected.stream().map(Menu::getId).collect(Collectors.toList());
+        String entityName = I18NUtil.get("menu.title");
         String actionKey = isEnabled ? "menu.batch.enable" : "menu.batch.disable";
-        String action = isEnabled ? I18NUtil.get("menu.enabled") : I18NUtil.get("menu.disabled");
 
-        ConfirmDialog confirmDialog = new ConfirmDialog();
-        String confirmKey = isEnabled ? "confirm.batch.enable" : "confirm.batch.disable";
-        confirmDialog.setHeader(I18NUtil.get(confirmKey + ".title"));
-        confirmDialog.setText(I18NUtil.get(confirmKey + ".text", ids.size(), I18NUtil.get("menu.title")));
-        confirmDialog.setConfirmText(action);
-        confirmDialog.setConfirmButtonTheme("primary");
-        confirmDialog.setCancelText(I18NUtil.get("common.cancel"));
-        confirmDialog.setCancelButtonTheme("tertiary");
-        confirmDialog.setCancelable(true);
-
-        confirmDialog.addConfirmListener(e -> {
-            try {
-                service.batchUpdateMenuStatus(ids, isEnabled);
-                NotificationUtil.showSuccess(I18NUtil.get(actionKey + ".success", ids.size()));
-                grid.deselectAll();
-                performSearch();
-            } catch (Exception ex) {
-                NotificationUtil.showError(I18NUtil.get(actionKey + ".failed", ex.getMessage()));
-            }
-        });
-
-        confirmDialog.addCancelListener(e -> {
-            // 用户点击取消，关闭对话框
-        });
-
-        confirmDialog.open();
+        (isEnabled ? 
+            ConfirmDialogUtil.createBatchEnableDialog(entityName, ids.size(), () -> {
+                try {
+                    service.batchUpdateMenuStatus(ids, true);
+                    NotificationUtil.showSuccess(I18NUtil.get(actionKey + ".success", ids.size()));
+                    grid.deselectAll();
+                    performSearch();
+                } catch (Exception ex) {
+                    NotificationUtil.showError(I18NUtil.get(actionKey + ".failed", ex.getMessage()));
+                }
+            }) :
+            ConfirmDialogUtil.createBatchDisableDialog(entityName, ids.size(), () -> {
+                try {
+                    service.batchUpdateMenuStatus(ids, false);
+                    NotificationUtil.showSuccess(I18NUtil.get(actionKey + ".success", ids.size()));
+                    grid.deselectAll();
+                    performSearch();
+                } catch (Exception ex) {
+                    NotificationUtil.showError(I18NUtil.get(actionKey + ".failed", ex.getMessage()));
+                }
+            })
+        ).open();
     }
 
     /**

@@ -1,12 +1,12 @@
 package com.admin.views.base;
 
 import com.admin.component.BaseFormDialog;
+import com.admin.component.ConfirmDialogUtil;
 import com.admin.entity.BaseEntity;
 import com.admin.util.I18NUtil;
 import com.admin.util.NotificationUtil;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -171,30 +171,19 @@ public abstract class BaseListView<T extends BaseEntity, S> extends VerticalLayo
      */
     protected void deleteEntity(T entity) {
         String entityDisplayName = getEntityDisplayName(entity);
-        ConfirmDialog confirmDialog = new ConfirmDialog();
-        confirmDialog.setHeader(I18NUtil.get("confirm.delete.title"));
-        confirmDialog.setText(I18NUtil.get("confirm.delete.text", entityName, entityDisplayName));
-        confirmDialog.setConfirmText(I18NUtil.get("common.delete"));
-        confirmDialog.setConfirmButtonTheme("error primary");
-        confirmDialog.setCancelText(I18NUtil.get("common.cancel"));
-        confirmDialog.setCancelButtonTheme("tertiary");
-        confirmDialog.setCancelable(true);
-
-        confirmDialog.addConfirmListener(e -> {
-            try {
-                performDelete(entity);
-                NotificationUtil.showSuccess(I18NUtil.get("error.delete.success", entityName));
-                updateList();
-            } catch (Exception ex) {
-                NotificationUtil.showError(I18NUtil.get("error.delete.failed", entityName, ex.getMessage()));
+        ConfirmDialogUtil.createDeleteDialog(
+            entityName,
+            entityDisplayName,
+            () -> {
+                try {
+                    performDelete(entity);
+                    NotificationUtil.showSuccess(I18NUtil.get("error.delete.success", entityName));
+                    updateList();
+                } catch (Exception ex) {
+                    NotificationUtil.showError(I18NUtil.get("error.delete.failed", entityName, ex.getMessage()));
+                }
             }
-        });
-
-        confirmDialog.addCancelListener(e -> {
-            // 用户点击取消，关闭对话框
-        });
-
-        confirmDialog.open();
+        ).open();
     }
 
     /**
