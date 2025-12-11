@@ -157,16 +157,25 @@ public class UserListView extends BaseListView<User, UserService> implements Has
             HorizontalLayout actionLayout = new HorizontalLayout();
             actionLayout.setSpacing(true);
 
+            // 编辑按钮 - 符合 Vaadin 24 最佳实践
             Button editButton = new Button(I18NUtil.get("common.edit"), new Icon(VaadinIcon.EDIT));
             editButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
+            editButton.setAriaLabel(I18NUtil.get("common.edit"));
+            editButton.setTooltipText(I18NUtil.get("common.edit"));
             editButton.addClickListener(e -> editEntity(user));
 
+            // 删除按钮 - 符合 Vaadin 24 最佳实践
             Button deleteButton = new Button(I18NUtil.get("common.delete"), new Icon(VaadinIcon.TRASH));
             deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
+            deleteButton.setAriaLabel(I18NUtil.get("common.delete"));
+            deleteButton.setTooltipText(I18NUtil.get("common.delete"));
             deleteButton.addClickListener(e -> deleteEntity(user));
 
+            // 分配角色按钮 - 符合 Vaadin 24 最佳实践
             Button assignRoleButton = new Button(I18NUtil.get("user.assign.role"), new Icon(VaadinIcon.USER_CHECK));
             assignRoleButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_SUCCESS);
+            assignRoleButton.setAriaLabel(I18NUtil.get("user.assign.role"));
+            assignRoleButton.setTooltipText(I18NUtil.get("user.assign.role"));
             assignRoleButton.addClickListener(e -> {
                 UserRoleAssignDialog dialog = new UserRoleAssignDialog(
                         service,
@@ -240,11 +249,17 @@ public class UserListView extends BaseListView<User, UserService> implements Has
      * 构建工具栏
      */
     private HorizontalLayout buildToolbar() {
+        // 添加按钮 - 符合 Vaadin 24 最佳实践
         Button addButton = new Button(I18NUtil.get("user.add"), new Icon(VaadinIcon.PLUS));
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addButton.setAriaLabel(I18NUtil.get("user.add"));
+        addButton.setTooltipText(I18NUtil.get("user.add"));
         addButton.addClickListener(e -> addEntity());
 
+        // 刷新按钮 - 符合 Vaadin 24 最佳实践
         Button refreshButton = new Button(I18NUtil.get("common.refresh"), new Icon(VaadinIcon.REFRESH));
+        refreshButton.setAriaLabel(I18NUtil.get("common.refresh"));
+        refreshButton.setTooltipText(I18NUtil.get("common.refresh"));
         refreshButton.addClickListener(e -> performSearch());
 
         HorizontalLayout toolbar = new HorizontalLayout(addButton, refreshButton);
@@ -306,11 +321,17 @@ public class UserListView extends BaseListView<User, UserService> implements Has
         statusFilter.setClearButtonVisible(true);
         statusFilter.setPlaceholder(I18NUtil.get("user.placeholder.status"));
 
+        // 搜索按钮 - 符合 Vaadin 24 最佳实践
         searchButton = new Button(I18NUtil.get("common.search"), new Icon(VaadinIcon.SEARCH));
         searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        searchButton.setAriaLabel(I18NUtil.get("common.search"));
+        searchButton.setTooltipText(I18NUtil.get("common.search"));
         searchButton.addClickListener(e -> performSearch());
 
+        // 重置按钮 - 符合 Vaadin 24 最佳实践
         resetButton = new Button(I18NUtil.get("common.reset"), new Icon(VaadinIcon.REFRESH));
+        resetButton.setAriaLabel(I18NUtil.get("common.reset"));
+        resetButton.setTooltipText(I18NUtil.get("common.reset"));
         resetButton.addClickListener(e -> resetSearch());
 
         HorizontalLayout searchBar = new HorizontalLayout(
@@ -328,17 +349,50 @@ public class UserListView extends BaseListView<User, UserService> implements Has
      * 构建批量操作栏
      */
     private HorizontalLayout buildBatchOperationBar() {
+        // 批量删除按钮 - 符合 Vaadin 24 最佳实践
         batchDeleteButton = new Button(I18NUtil.get("user.batch.delete"), new Icon(VaadinIcon.TRASH));
         batchDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        batchDeleteButton.addClickListener(e -> performBatchDelete());
+        batchDeleteButton.setAriaLabel(I18NUtil.get("user.batch.delete"));
+        batchDeleteButton.setTooltipText(I18NUtil.get("user.batch.delete"));
+        batchDeleteButton.setDisableOnClick(true);
+        batchDeleteButton.addClickListener(e -> {
+            try {
+                performBatchDelete();
+            } finally {
+                // 操作完成后重新启用按钮
+                getUI().ifPresent(ui -> ui.access(() -> batchDeleteButton.setEnabled(true)));
+            }
+        });
 
+        // 批量启用按钮 - 符合 Vaadin 24 最佳实践
         batchEnableButton = new Button(I18NUtil.get("user.batch.enable"), new Icon(VaadinIcon.CHECK));
         batchEnableButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        batchEnableButton.addClickListener(e -> performBatchUpdateStatus(true));
+        batchEnableButton.setAriaLabel(I18NUtil.get("user.batch.enable"));
+        batchEnableButton.setTooltipText(I18NUtil.get("user.batch.enable"));
+        batchEnableButton.setDisableOnClick(true);
+        batchEnableButton.addClickListener(e -> {
+            try {
+                performBatchUpdateStatus(true);
+            } finally {
+                // 操作完成后重新启用按钮
+                getUI().ifPresent(ui -> ui.access(() -> batchEnableButton.setEnabled(true)));
+            }
+        });
 
+        // 批量禁用按钮 - 符合 Vaadin 24 最佳实践
         batchDisableButton = new Button(I18NUtil.get("user.batch.disable"), new Icon(VaadinIcon.CLOSE));
         batchDisableButton.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
-        batchDisableButton.addClickListener(e -> performBatchUpdateStatus(false));
+        batchDisableButton.setAriaLabel(I18NUtil.get("user.batch.disable"));
+        batchDisableButton.setTooltipText(I18NUtil.get("user.batch.disable"));
+        batchDisableButton.setDisableOnClick(true);
+        batchDisableButton.addClickListener(e -> {
+            try {
+                performBatchUpdateStatus(false);
+            } finally {
+                // 操作完成后重新启用按钮
+                getUI().ifPresent(ui -> ui.access(() -> batchDisableButton.setEnabled(true)));
+            }
+        });
 
         HorizontalLayout batchBar = new HorizontalLayout(
                 batchDeleteButton, batchEnableButton, batchDisableButton
@@ -353,15 +407,21 @@ public class UserListView extends BaseListView<User, UserService> implements Has
      * 构建分页组件
      */
     private HorizontalLayout buildPagination() {
+        // 首页按钮 - 符合 Vaadin 24 最佳实践
         firstPageButton = new Button(I18NUtil.get("common.firstPage"), new Icon(VaadinIcon.ANGLE_DOUBLE_LEFT));
         firstPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        firstPageButton.setAriaLabel(I18NUtil.get("common.firstPage"));
+        firstPageButton.setTooltipText(I18NUtil.get("common.firstPage"));
         firstPageButton.addClickListener(e -> {
             currentPageRequest.setPageNum(1);
             performSearch();
         });
 
+        // 上一页按钮 - 符合 Vaadin 24 最佳实践
         prevPageButton = new Button(I18NUtil.get("common.prevPage"), new Icon(VaadinIcon.ANGLE_LEFT));
         prevPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        prevPageButton.setAriaLabel(I18NUtil.get("common.prevPage"));
+        prevPageButton.setTooltipText(I18NUtil.get("common.prevPage"));
         prevPageButton.addClickListener(e -> {
             if (currentPageRequest.getPageNum() > 1) {
                 currentPageRequest.setPageNum(currentPageRequest.getPageNum() - 1);
@@ -369,8 +429,11 @@ public class UserListView extends BaseListView<User, UserService> implements Has
             }
         });
 
+        // 下一页按钮 - 符合 Vaadin 24 最佳实践
         nextPageButton = new Button(I18NUtil.get("common.nextPage"), new Icon(VaadinIcon.ANGLE_RIGHT));
         nextPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        nextPageButton.setAriaLabel(I18NUtil.get("common.nextPage"));
+        nextPageButton.setTooltipText(I18NUtil.get("common.nextPage"));
         nextPageButton.addClickListener(e -> {
             if (currentPageResult != null && currentPageResult.getData() != null) {
                 int totalPages = PaginationUtil.calculateTotalPages(currentPageResult.getData());
@@ -381,8 +444,11 @@ public class UserListView extends BaseListView<User, UserService> implements Has
             }
         });
 
+        // 末页按钮 - 符合 Vaadin 24 最佳实践
         lastPageButton = new Button(I18NUtil.get("common.lastPage"), new Icon(VaadinIcon.ANGLE_DOUBLE_RIGHT));
         lastPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        lastPageButton.setAriaLabel(I18NUtil.get("common.lastPage"));
+        lastPageButton.setTooltipText(I18NUtil.get("common.lastPage"));
         lastPageButton.addClickListener(e -> {
             if (currentPageResult != null && currentPageResult.getData() != null) {
                 currentPageRequest.setPageNum(PaginationUtil.getLastPageNum(currentPageResult.getData()));

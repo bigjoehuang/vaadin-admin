@@ -78,7 +78,21 @@ public abstract class BaseFormDialog<T extends BaseEntity> extends Dialog {
 
         saveButton = new Button(isEdit ? I18NUtil.get("common.update") : I18NUtil.get("common.save"));
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveButton.addClickListener(e -> save());
+        // 防止重复点击，符合 Vaadin 24 最佳实践
+        saveButton.setDisableOnClick(true);
+        saveButton.addClickListener(e -> {
+            try {
+                save();
+            } finally {
+                // 如果保存失败，需要重新启用按钮
+                // 注意：如果保存成功并关闭对话框，按钮会自动重新启用
+                getUI().ifPresent(ui -> ui.access(() -> {
+                    if (isOpened()) {
+                        saveButton.setEnabled(true);
+                    }
+                }));
+            }
+        });
         // 主要按钮文字颜色（使用CSS变量，已改为黑色）
         saveButton.getElement().getStyle().set("color", "var(--lumo-primary-text-color)");
 

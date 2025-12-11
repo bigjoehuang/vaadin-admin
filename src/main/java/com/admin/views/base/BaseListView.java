@@ -82,12 +82,18 @@ public abstract class BaseListView<T extends BaseEntity, S> extends VerticalLayo
             HorizontalLayout actionLayout = new HorizontalLayout();
             actionLayout.setSpacing(true);
 
+            // 编辑按钮 - 符合 Vaadin 24 最佳实践
             Button editButton = new Button(I18NUtil.get("common.edit"), new Icon(VaadinIcon.EDIT));
             editButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
+            editButton.setAriaLabel(I18NUtil.get("common.edit"));
+            editButton.setTooltipText(I18NUtil.get("common.edit"));
             editButton.addClickListener(e -> editEntity(entity));
 
+            // 删除按钮 - 符合 Vaadin 24 最佳实践
             Button deleteButton = new Button(I18NUtil.get("common.delete"), new Icon(VaadinIcon.TRASH));
             deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
+            deleteButton.setAriaLabel(I18NUtil.get("common.delete"));
+            deleteButton.setTooltipText(I18NUtil.get("common.delete"));
             deleteButton.addClickListener(e -> deleteEntity(entity));
 
             actionLayout.add(editButton, deleteButton);
