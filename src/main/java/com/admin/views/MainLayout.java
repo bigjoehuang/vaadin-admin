@@ -340,6 +340,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
                 return MenuListView.class;
             case "operationlog":
             case "operation-log":
+            case "operation-logs":
                 return com.admin.views.operationlog.OperationLogListView.class;
             default:
                 // 如果找不到映射，返回 null
