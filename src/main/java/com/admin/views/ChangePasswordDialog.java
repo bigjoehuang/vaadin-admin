@@ -1,6 +1,7 @@
 package com.admin.views;
 
 import com.admin.service.UserService;
+import com.admin.util.I18NUtil;
 import com.admin.util.NotificationUtil;
 import com.admin.util.UserUtil;
 import com.vaadin.flow.component.button.Button;
@@ -67,49 +68,49 @@ public class ChangePasswordDialog extends Dialog {
         this.userService = userService;
         this.binder = new Binder<>(PasswordData.class);
 
-        setHeaderTitle("修改密码");
+        setHeaderTitle(I18NUtil.get("password.change.title"));
         setWidth("500px");
         setResizable(true);
         setDraggable(true);
 
         // 创建表单字段
-        oldPasswordField = new PasswordField("原密码");
+        oldPasswordField = new PasswordField(I18NUtil.get("password.change.old"));
         oldPasswordField.setRequired(true);
         oldPasswordField.setRequiredIndicatorVisible(true);
         oldPasswordField.setWidthFull();
-        oldPasswordField.setPlaceholder("请输入原密码");
+        oldPasswordField.setPlaceholder(I18NUtil.get("password.change.placeholder.old"));
 
-        newPasswordField = new PasswordField("新密码");
+        newPasswordField = new PasswordField(I18NUtil.get("password.change.new"));
         newPasswordField.setRequired(true);
         newPasswordField.setRequiredIndicatorVisible(true);
         newPasswordField.setWidthFull();
-        newPasswordField.setPlaceholder("请输入新密码，至少6个字符");
+        newPasswordField.setPlaceholder(I18NUtil.get("password.change.placeholder.new"));
         newPasswordField.addValueChangeListener(e -> validatePasswordMatch());
 
-        confirmPasswordField = new PasswordField("确认新密码");
+        confirmPasswordField = new PasswordField(I18NUtil.get("password.change.confirm"));
         confirmPasswordField.setRequired(true);
         confirmPasswordField.setRequiredIndicatorVisible(true);
         confirmPasswordField.setWidthFull();
-        confirmPasswordField.setPlaceholder("请再次输入新密码");
+        confirmPasswordField.setPlaceholder(I18NUtil.get("password.change.placeholder.confirm"));
         confirmPasswordField.addValueChangeListener(e -> validatePasswordMatch());
 
         // 配置Binder验证
         binder.forField(oldPasswordField)
-                .asRequired("原密码不能为空")
+                .asRequired(I18NUtil.get("password.change.validation.old.required"))
                 .bind(PasswordData::getOldPassword, PasswordData::setOldPassword);
 
         binder.forField(newPasswordField)
-                .asRequired("新密码不能为空")
-                .withValidator(new StringLengthValidator("新密码长度必须在6-50个字符之间", 6, 50))
+                .asRequired(I18NUtil.get("password.change.validation.new.required"))
+                .withValidator(new StringLengthValidator(I18NUtil.get("password.change.validation.new.length"), 6, 50))
                 .bind(PasswordData::getNewPassword, PasswordData::setNewPassword);
 
         binder.forField(confirmPasswordField)
-                .asRequired("确认密码不能为空")
-                .withValidator(new StringLengthValidator("确认密码长度必须在6-50个字符之间", 6, 50))
+                .asRequired(I18NUtil.get("password.change.validation.confirm.required"))
+                .withValidator(new StringLengthValidator(I18NUtil.get("password.change.validation.confirm.length"), 6, 50))
                 .withValidator(password -> {
                     String newPassword = newPasswordField.getValue();
                     return newPassword != null && newPassword.equals(password);
-                }, "两次输入的密码不一致")
+                }, I18NUtil.get("password.change.validation.mismatch"))
                 .bind(PasswordData::getConfirmPassword, PasswordData::setConfirmPassword);
 
         // 创建表单布局
@@ -123,11 +124,11 @@ public class ChangePasswordDialog extends Dialog {
         );
 
         // 创建按钮
-        cancelButton = new Button("取消");
+        cancelButton = new Button(I18NUtil.get("common.cancel"));
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         cancelButton.addClickListener(e -> close());
 
-        saveButton = new Button("保存");
+        saveButton = new Button(I18NUtil.get("common.save"));
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(e -> savePassword());
 
@@ -156,7 +157,7 @@ public class ChangePasswordDialog extends Dialog {
 
         if (newPassword != null && confirmPassword != null && !newPassword.isEmpty() && !confirmPassword.isEmpty()) {
             if (!newPassword.equals(confirmPassword)) {
-                confirmPasswordField.setErrorMessage("两次输入的密码不一致");
+                confirmPasswordField.setErrorMessage(I18NUtil.get("password.change.validation.mismatch"));
                 confirmPasswordField.setInvalid(true);
             } else {
                 confirmPasswordField.setErrorMessage(null);
@@ -174,14 +175,14 @@ public class ChangePasswordDialog extends Dialog {
         try {
             binder.writeBean(passwordData);
         } catch (com.vaadin.flow.data.binder.ValidationException e) {
-            NotificationUtil.showError("请检查表单输入是否正确");
+            NotificationUtil.showError(I18NUtil.get("common.pleaseCheckInput"));
             return;
         }
 
         // 获取当前用户ID
         Long userId = UserUtil.getCurrentUserId();
         if (userId == null) {
-            NotificationUtil.showError("无法获取当前用户信息");
+            NotificationUtil.showError(I18NUtil.get("password.change.user.not.found"));
             return;
         }
 
@@ -193,10 +194,10 @@ public class ChangePasswordDialog extends Dialog {
                     passwordData.getNewPassword()
             );
 
-            NotificationUtil.showSuccess("密码修改成功");
+            NotificationUtil.showSuccess(I18NUtil.get("password.change.success"));
             close();
         } catch (Exception e) {
-            NotificationUtil.showError("修改密码失败：" + e.getMessage());
+            NotificationUtil.showError(I18NUtil.get("password.change.failed", e.getMessage()));
         }
     }
 }

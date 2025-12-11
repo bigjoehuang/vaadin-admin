@@ -4,6 +4,7 @@ import com.admin.entity.Role;
 import com.admin.entity.User;
 import com.admin.service.RoleService;
 import com.admin.service.UserService;
+import com.admin.util.I18NUtil;
 import com.admin.util.NotificationUtil;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -39,7 +40,7 @@ public class UserRoleAssignDialog extends Dialog {
         this.user = user;
         this.refreshCallback = refreshCallback;
 
-        setHeaderTitle("分配角色 - " + user.getUserName());
+        setHeaderTitle(I18NUtil.get("user.assign.role.title", user.getUserName()));
         setWidth("500px");
         setHeight("600px");
 
@@ -68,11 +69,11 @@ public class UserRoleAssignDialog extends Dialog {
         }
 
         // 创建按钮
-        saveButton = new Button("保存");
+        saveButton = new Button(I18NUtil.get("common.save"));
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(e -> save());
 
-        cancelButton = new Button("取消");
+        cancelButton = new Button(I18NUtil.get("common.cancel"));
         cancelButton.addClickListener(e -> close());
 
         HorizontalLayout buttonLayout = new HorizontalLayout(saveButton, cancelButton);
@@ -96,13 +97,13 @@ public class UserRoleAssignDialog extends Dialog {
             // 保存用户角色关联
             userService.assignRoles(user.getId(), selectedRoleIds);
 
-            NotificationUtil.showSuccess("分配角色成功");
+            NotificationUtil.showSuccess(I18NUtil.get("user.assign.role.success"));
             if (refreshCallback != null) {
                 refreshCallback.run();
             }
             close();
         } catch (Exception e) {
-            NotificationUtil.showError("分配角色失败：" + e.getMessage());
+            NotificationUtil.showError(I18NUtil.get("user.assign.role.failed", e.getMessage()));
         }
     }
 }

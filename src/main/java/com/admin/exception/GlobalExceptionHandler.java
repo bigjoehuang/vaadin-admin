@@ -31,6 +31,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public Result<?> handleBusinessException(BusinessException e) {
         log.warn("业务异常: {}", e.getMessage());
+        // BusinessException 的 message 已经是国际化后的文本或 key
+        // 如果是 key，前端会通过 I18NUtil 处理
         return Result.error(e.getCode(), e.getMessage());
     }
 
@@ -77,7 +79,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public Result<?> handleException(Exception e) {
         log.error("系统异常", e);
-        return Result.error(ErrorCode.SERVER_ERROR.getCode(), "系统异常，请联系管理员");
+        return Result.error(ErrorCode.SERVER_ERROR.getCode(), ErrorCode.SERVER_ERROR.getMessage());
     }
 }
 

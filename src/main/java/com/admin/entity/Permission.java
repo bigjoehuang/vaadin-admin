@@ -63,3 +63,4 @@ public class Permission extends BaseEntity {
     private Integer deleted;
 }
 
+

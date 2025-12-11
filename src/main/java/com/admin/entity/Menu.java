@@ -53,3 +53,4 @@ public class Menu extends BaseEntity {
     private Integer deleted;
 }
 
+

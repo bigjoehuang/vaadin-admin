@@ -1,6 +1,8 @@
 package com.admin.views;
 
 import com.admin.service.UserService;
+import com.admin.util.I18NUtil;
+import com.admin.util.LocaleUtil;
 import com.admin.util.ThemeUtil;
 import com.admin.util.UserUtil;
 import com.admin.views.menu.MenuListView;
@@ -50,6 +52,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         getElement().getStyle().set("--drawer-width", "200px");
         getElement().getStyle().set("--vaadin-app-layout-drawer-width", "200px");
         
+        // 初始化语言（从 localStorage 恢复）
+        LocaleUtil.initLocale();
+        
         // 初始化主题（从 localStorage 恢复）
         ThemeUtil.initTheme();
         
@@ -58,7 +63,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
     }
 
     private void createHeader() {
-        H1 logo = new H1("Vaadin Admin");
+        H1 logo = new H1(I18NUtil.get("main.layout.app.name"));
         logo.addClassNames(
                 LumoUtility.FontSize.LARGE,
                 LumoUtility.Margin.MEDIUM);
@@ -66,14 +71,17 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         DrawerToggle drawerToggle = new DrawerToggle();
         drawerToggle.addClassNames("drawer-toggle-button");
         
+        // 创建语言切换按钮
+        Component localeToggleButton = createLocaleToggleButton();
+        
         // 创建主题切换按钮
         Component themeToggleButton = createThemeToggleButton();
         
         // 创建用户信息区域（右上角）
         Component userMenu = createUserMenu();
         
-        // 创建右上角操作区域（主题切换按钮 + 用户菜单）
-        HorizontalLayout rightActions = new HorizontalLayout(themeToggleButton, userMenu);
+        // 创建右上角操作区域（语言切换 + 主题切换按钮 + 用户菜单）
+        HorizontalLayout rightActions = new HorizontalLayout(localeToggleButton, themeToggleButton, userMenu);
         rightActions.setSpacing(true);
         rightActions.setAlignItems(FlexComponent.Alignment.CENTER);
         
@@ -91,6 +99,25 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
     }
 
     /**
+     * 创建语言切换按钮
+     */
+    private Component createLocaleToggleButton() {
+        Button localeButton = new Button();
+        Icon globeIcon = new Icon(VaadinIcon.GLOBE);
+        globeIcon.getStyle().set("color", "var(--lumo-body-text-color)");
+        localeButton.setIcon(globeIcon);
+        localeButton.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_TERTIARY);
+        localeButton.setAriaLabel(I18NUtil.get("locale.switch"));
+        localeButton.addClickListener(e -> {
+            LocaleUtil.toggleLocale();
+            // 刷新页面以应用新的语言
+            getUI().ifPresent(ui -> ui.getPage().reload());
+        });
+        localeButton.addClassName("locale-toggle-button");
+        return localeButton;
+    }
+
+    /**
      * 创建主题切换按钮
      */
     private Component createThemeToggleButton() {
@@ -99,7 +126,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         moonIcon.getStyle().set("color", "var(--lumo-body-text-color)");
         themeButton.setIcon(moonIcon);
         themeButton.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_TERTIARY);
-        themeButton.setAriaLabel("切换主题");
+        themeButton.setAriaLabel(I18NUtil.get("main.layout.theme.toggle"));
         themeButton.addClassName("theme-toggle-button");
         
         // 更新图标的方法
@@ -164,7 +191,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         } else if (userName != null) {
             avatar.setName(userName);
         } else {
-            avatar.setName("用户");
+            avatar.setName(I18NUtil.get("main.layout.user"));
         }
         avatar.setImage(currentUser != null ? currentUser.getAvatar() : null);
         
@@ -175,7 +202,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         } else if (userName != null) {
             userNameSpan.setText(userName);
         } else {
-            userNameSpan.setText("用户");
+            userNameSpan.setText(I18NUtil.get("main.layout.user"));
         }
         userNameSpan.getStyle().set("font-size", "var(--lumo-font-size-m)");
         userNameSpan.getStyle().set("color", "var(--lumo-body-text-color)");
@@ -194,14 +221,14 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         contextMenu.setOpenOnClick(true);
         
         // 添加"修改密码"菜单项
-        MenuItem changePasswordItem = contextMenu.addItem("修改密码", e -> {
+        MenuItem changePasswordItem = contextMenu.addItem(I18NUtil.get("main.layout.change.password"), e -> {
             ChangePasswordDialog dialog = new ChangePasswordDialog(userService);
             dialog.open();
         });
         changePasswordItem.addComponentAsFirst(new Icon(VaadinIcon.KEY));
         
         // 添加"退出登录"菜单项
-        MenuItem logoutItem = contextMenu.addItem("退出登录", e -> {
+        MenuItem logoutItem = contextMenu.addItem(I18NUtil.get("main.layout.logout"), e -> {
             getUI().ifPresent(ui -> {
                 ui.getPage().setLocation("/logout");
             });
@@ -220,11 +247,11 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
     private Tabs createNavigation() {
         tabs = new Tabs();
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
-        tabs.add(createTab("仪表盘", DashboardView.class));
-        tabs.add(createTab("用户管理", UserListView.class));
-        tabs.add(createTab("角色管理", RoleListView.class));
-        tabs.add(createTab("菜单管理", MenuListView.class));
-        tabs.add(createTab("操作日志", com.admin.views.operationlog.OperationLogListView.class));
+        tabs.add(createTab(I18NUtil.get("main.layout.dashboard"), DashboardView.class));
+        tabs.add(createTab(I18NUtil.get("main.layout.user.management"), UserListView.class));
+        tabs.add(createTab(I18NUtil.get("main.layout.role.management"), RoleListView.class));
+        tabs.add(createTab(I18NUtil.get("main.layout.menu.management"), MenuListView.class));
+        tabs.add(createTab(I18NUtil.get("main.layout.operation.log"), com.admin.views.operationlog.OperationLogListView.class));
         return tabs;
     }
 

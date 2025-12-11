@@ -2,6 +2,7 @@ package com.admin.views.base;
 
 import com.admin.component.BaseFormDialog;
 import com.admin.entity.BaseEntity;
+import com.admin.util.I18NUtil;
 import com.admin.util.NotificationUtil;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -81,17 +82,17 @@ public abstract class BaseListView<T extends BaseEntity, S> extends VerticalLayo
             HorizontalLayout actionLayout = new HorizontalLayout();
             actionLayout.setSpacing(true);
 
-            Button editButton = new Button("编辑", new Icon(VaadinIcon.EDIT));
+            Button editButton = new Button(I18NUtil.get("common.edit"), new Icon(VaadinIcon.EDIT));
             editButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
             editButton.addClickListener(e -> editEntity(entity));
 
-            Button deleteButton = new Button("删除", new Icon(VaadinIcon.TRASH));
+            Button deleteButton = new Button(I18NUtil.get("common.delete"), new Icon(VaadinIcon.TRASH));
             deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
             deleteButton.addClickListener(e -> deleteEntity(entity));
 
             actionLayout.add(editButton, deleteButton);
             return actionLayout;
-        }).setHeader("操作").setWidth("180px").setFlexGrow(0);
+        }).setHeader(I18NUtil.get("common.operation")).setWidth("180px").setFlexGrow(0);
     }
 
     /**
@@ -113,7 +114,7 @@ public abstract class BaseListView<T extends BaseEntity, S> extends VerticalLayo
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addButton.addClickListener(e -> addEntity());
 
-        Button refreshButton = new Button("刷新");
+        Button refreshButton = new Button(I18NUtil.get("common.refresh"));
         refreshButton.addClickListener(e -> updateList());
 
         HorizontalLayout toolbar = new HorizontalLayout(addButton, refreshButton);
@@ -130,7 +131,7 @@ public abstract class BaseListView<T extends BaseEntity, S> extends VerticalLayo
             List<T> items = getListData();
             grid.setItems(items);
         } catch (Exception e) {
-            NotificationUtil.showError("加载" + entityName + "列表失败：" + e.getMessage());
+            NotificationUtil.showError(I18NUtil.get("error.load.failed", entityName, e.getMessage()));
         }
     }
 
@@ -171,21 +172,21 @@ public abstract class BaseListView<T extends BaseEntity, S> extends VerticalLayo
     protected void deleteEntity(T entity) {
         String entityDisplayName = getEntityDisplayName(entity);
         ConfirmDialog confirmDialog = new ConfirmDialog();
-        confirmDialog.setHeader("确认删除");
-        confirmDialog.setText("确定要删除" + entityName + " \"" + entityDisplayName + "\" 吗？此操作不可恢复。");
-        confirmDialog.setConfirmText("删除");
+        confirmDialog.setHeader(I18NUtil.get("confirm.delete.title"));
+        confirmDialog.setText(I18NUtil.get("confirm.delete.text", entityName, entityDisplayName));
+        confirmDialog.setConfirmText(I18NUtil.get("common.delete"));
         confirmDialog.setConfirmButtonTheme("error primary");
-        confirmDialog.setCancelText("取消");
+        confirmDialog.setCancelText(I18NUtil.get("common.cancel"));
         confirmDialog.setCancelButtonTheme("tertiary");
         confirmDialog.setCancelable(true);
 
         confirmDialog.addConfirmListener(e -> {
             try {
                 performDelete(entity);
-                NotificationUtil.showSuccess("删除" + entityName + "成功");
+                NotificationUtil.showSuccess(I18NUtil.get("error.delete.success", entityName));
                 updateList();
             } catch (Exception ex) {
-                NotificationUtil.showError("删除" + entityName + "失败：" + ex.getMessage());
+                NotificationUtil.showError(I18NUtil.get("error.delete.failed", entityName, ex.getMessage()));
             }
         });
 

@@ -8,3 +8,4 @@ SET password = '$2a$10$seSlmKMS9IE5QQiwvEwxS.4rs/ilXwgaw7jCPxh3zct7I1.VkCZZG',
 WHERE userName = 'admin' 
   AND (password != '$2a$10$seSlmKMS9IE5QQiwvEwxS.4rs/ilXwgaw7jCPxh3zct7I1.VkCZZG' OR password IS NULL);
 
+

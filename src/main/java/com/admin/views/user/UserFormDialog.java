@@ -3,6 +3,7 @@ package com.admin.views.user;
 import com.admin.component.BaseFormDialog;
 import com.admin.entity.User;
 import com.admin.service.UserService;
+import com.admin.util.I18NUtil;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
@@ -42,30 +43,30 @@ public class UserFormDialog extends BaseFormDialog<User> {
         this.refreshCallback = refreshCallback;
         // 设置对话框标题
         if (isEdit) {
-            setHeaderTitle("编辑用户");
+            setHeaderTitle(I18NUtil.get("user.edit"));
         } else {
-            setHeaderTitle("新增用户");
+            setHeaderTitle(I18NUtil.get("user.new"));
         }
     }
 
     @Override
     protected void buildFormFields() {
-        userNameField = new TextField("用户名");
+        userNameField = new TextField(I18NUtil.get("user.userName"));
         userNameField.setRequired(true);
         userNameField.setRequiredIndicatorVisible(true);
         userNameField.setWidthFull();
-        userNameField.setPlaceholder("请输入用户名，1-50个字符");
+        userNameField.setPlaceholder(I18NUtil.get("user.placeholder.userName"));
         // 通过Java代码设置label颜色，确保在获得焦点时可见
         userNameField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         userNameField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
         if (isEdit) {
             userNameField.setReadOnly(true);
-            userNameField.setHelperText("编辑模式下用户名不可修改");
+            userNameField.setHelperText(I18NUtil.get("user.helper.userName.edit"));
         }
 
-        passwordField = new PasswordField("密码");
+        passwordField = new PasswordField(I18NUtil.get("user.password"));
         passwordField.setWidthFull();
-        passwordField.setPlaceholder(isEdit ? "留空则保持原密码，否则请输入新密码" : "请输入密码，至少6个字符");
+        passwordField.setPlaceholder(isEdit ? I18NUtil.get("user.placeholder.password.edit") : I18NUtil.get("user.placeholder.password"));
         // 通过Java代码设置label颜色
         passwordField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         passwordField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
@@ -74,28 +75,28 @@ public class UserFormDialog extends BaseFormDialog<User> {
             passwordField.setRequiredIndicatorVisible(true);
         }
 
-        nicknameField = new TextField("昵称");
+        nicknameField = new TextField(I18NUtil.get("user.nickname"));
         nicknameField.setWidthFull();
-        nicknameField.setPlaceholder("请输入昵称，最多50个字符");
+        nicknameField.setPlaceholder(I18NUtil.get("user.placeholder.nickname"));
         // 通过Java代码设置label颜色
         nicknameField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         nicknameField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        emailField = new EmailField("邮箱");
+        emailField = new EmailField(I18NUtil.get("user.email"));
         emailField.setWidthFull();
-        emailField.setPlaceholder("请输入邮箱地址");
+        emailField.setPlaceholder(I18NUtil.get("user.placeholder.email"));
         // 通过Java代码设置label颜色
         emailField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         emailField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        phoneField = new TextField("手机号");
+        phoneField = new TextField(I18NUtil.get("user.phone"));
         phoneField.setWidthFull();
-        phoneField.setPlaceholder("请输入手机号");
+        phoneField.setPlaceholder(I18NUtil.get("user.placeholder.phone"));
         // 通过Java代码设置label颜色
         phoneField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         phoneField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        enabledCheckbox = new Checkbox("是否启用");
+        enabledCheckbox = new Checkbox(I18NUtil.get("user.status"));
         enabledCheckbox.setValue(true);
 
         formLayout.add(userNameField, 2);
@@ -110,8 +111,8 @@ public class UserFormDialog extends BaseFormDialog<User> {
     protected void configureBinder() {
         // 手动绑定字段
         binder.forField(userNameField)
-                .asRequired("用户名不能为空")
-                .withValidator(new StringLengthValidator("用户名长度必须在1-50个字符之间", 1, 50))
+                .asRequired(I18NUtil.get("user.validation.userName.required"))
+                .withValidator(new StringLengthValidator(I18NUtil.get("user.validation.userName.length"), 1, 50))
                 .withValidator(userName -> {
                     if (isEdit) {
                         // 编辑模式下，用户名唯一性由Service层验证（已排除当前记录）
@@ -119,7 +120,7 @@ public class UserFormDialog extends BaseFormDialog<User> {
                     }
                     // 新增模式下检查用户名是否已存在
                     return !isUserNameExists(userName);
-                }, "用户名已存在，请使用其他用户名")
+                }, I18NUtil.get("user.validation.userName.exists"))
                 .bind(User::getUserName, User::setUserName);
 
         binder.forField(passwordField)
@@ -131,27 +132,27 @@ public class UserFormDialog extends BaseFormDialog<User> {
                         // 编辑模式下，密码可以为空（保持原密码）
                         return true;
                     }
-                }, "密码不能为空")
+                }, I18NUtil.get("user.validation.password.required"))
                 .withValidator(password -> {
                     if (password != null && !password.trim().isEmpty()) {
                         return password.length() >= 6;
                     }
                     return true; // 编辑模式下密码为空时跳过长度验证
-                }, "密码长度至少为6个字符")
+                }, I18NUtil.get("user.validation.password.length"))
                 .bind(User::getPassword, User::setPassword);
 
         binder.forField(nicknameField)
                 .withValidator(nickname -> nickname == null || nickname.length() <= 50,
-                        "昵称长度不能超过50个字符")
+                        I18NUtil.get("user.validation.nickname.length"))
                 .bind(User::getNickname, User::setNickname);
 
         binder.forField(emailField)
-                .withValidator(new EmailValidator("请输入有效的邮箱地址"))
+                .withValidator(new EmailValidator(I18NUtil.get("user.validation.email.invalid")))
                 .bind(User::getEmail, User::setEmail);
 
         binder.forField(phoneField)
                 .withValidator(phone -> phone == null || phone.matches("^1[3-9]\\d{9}$|^$"),
-                        "请输入有效的手机号（11位数字）")
+                        I18NUtil.get("user.validation.phone.invalid"))
                 .bind(User::getPhone, User::setPhone);
 
         binder.forField(enabledCheckbox)
@@ -188,10 +189,10 @@ public class UserFormDialog extends BaseFormDialog<User> {
 
             if (isEdit) {
                 userService.updateUser(entity);
-                showSuccessAndClose("更新用户成功");
+                showSuccessAndClose(I18NUtil.get("user.update.success"));
             } else {
                 userService.saveUser(entity);
-                showSuccessAndClose("保存用户成功");
+                showSuccessAndClose(I18NUtil.get("user.save.success"));
             }
             if (refreshCallback != null) {
                 refreshCallback.run();
@@ -201,7 +202,7 @@ public class UserFormDialog extends BaseFormDialog<User> {
             showError(e.getMessage());
         } catch (Exception e) {
             // 其他异常，显示通用错误信息
-            showError("操作失败：" + e.getMessage());
+            showError(I18NUtil.get("error.operation.failed") + ": " + e.getMessage());
             e.printStackTrace();
         }
     }

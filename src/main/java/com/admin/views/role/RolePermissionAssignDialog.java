@@ -4,6 +4,7 @@ import com.admin.entity.Permission;
 import com.admin.entity.Role;
 import com.admin.service.PermissionService;
 import com.admin.service.RoleService;
+import com.admin.util.I18NUtil;
 import com.admin.util.NotificationUtil;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -41,7 +42,7 @@ public class RolePermissionAssignDialog extends Dialog {
         this.role = role;
         this.refreshCallback = refreshCallback;
 
-        setHeaderTitle("分配权限 - " + role.getName());
+        setHeaderTitle(I18NUtil.get("role.assign.permission.title", role.getName()));
         setWidth("600px");
         setHeight("700px");
 
@@ -62,7 +63,7 @@ public class RolePermissionAssignDialog extends Dialog {
 
         // 按类型分组权限
         Map<String, List<Permission>> permissionsByType = allPermissions.stream()
-                .collect(Collectors.groupingBy(p -> p.getType() != null ? p.getType() : "其他"));
+                .collect(Collectors.groupingBy(p -> p.getType() != null ? p.getType() : I18NUtil.get("common.other")));
 
         // 创建权限复选框，按类型分组显示
         for (Map.Entry<String, List<Permission>> entry : permissionsByType.entrySet()) {
@@ -84,11 +85,11 @@ public class RolePermissionAssignDialog extends Dialog {
         }
 
         // 创建按钮
-        saveButton = new Button("保存");
+        saveButton = new Button(I18NUtil.get("common.save"));
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(e -> save());
 
-        cancelButton = new Button("取消");
+        cancelButton = new Button(I18NUtil.get("common.cancel"));
         cancelButton.addClickListener(e -> close());
 
         HorizontalLayout buttonLayout = new HorizontalLayout(saveButton, cancelButton);
@@ -112,13 +113,13 @@ public class RolePermissionAssignDialog extends Dialog {
             // 保存角色权限关联
             roleService.assignPermissions(role.getId(), selectedPermissionIds);
 
-            NotificationUtil.showSuccess("分配权限成功");
+            NotificationUtil.showSuccess(I18NUtil.get("role.assign.permission.success"));
             if (refreshCallback != null) {
                 refreshCallback.run();
             }
             close();
         } catch (Exception e) {
-            NotificationUtil.showError("分配权限失败：" + e.getMessage());
+            NotificationUtil.showError(I18NUtil.get("role.assign.permission.failed", e.getMessage()));
         }
     }
 }

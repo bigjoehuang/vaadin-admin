@@ -6,6 +6,7 @@ import com.admin.dto.UserQueryDTO;
 import com.admin.entity.User;
 import com.admin.service.RoleService;
 import com.admin.service.UserService;
+import com.admin.util.I18NUtil;
 import com.admin.util.NotificationUtil;
 import com.admin.util.PageResult;
 import com.admin.views.MainLayout;
@@ -21,7 +22,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 
 import java.util.ArrayList;
@@ -36,8 +37,7 @@ import java.util.stream.Collectors;
  * @date 2024-01-01
  */
 @Route(value = "users", layout = MainLayout.class)
-@PageTitle("用户管理")
-public class UserListView extends BaseListView<User, UserService> {
+public class UserListView extends BaseListView<User, UserService> implements HasDynamicTitle {
 
     // 搜索和筛选组件
     private TextField userNameSearchField;
@@ -47,6 +47,11 @@ public class UserListView extends BaseListView<User, UserService> {
     private ComboBox<String> statusFilter;
     private Button searchButton;
     private Button resetButton;
+
+    // 缓存的 i18n 值（Bug 2 修复）
+    private String i18nAll;
+    private String i18nEnabled;
+    private String i18nDisabled;
 
     // 批量操作组件
     private Button batchDeleteButton;
@@ -71,8 +76,13 @@ public class UserListView extends BaseListView<User, UserService> {
     private final RoleService roleService;
 
     public UserListView(UserService userService, RoleService roleService) {
-        super(userService, User.class, "用户", "添加用户", "user-list-view");
+        super(userService, User.class, I18NUtil.get("user.title"), I18NUtil.get("user.add"), "user-list-view");
         this.roleService = roleService;
+
+        // 缓存 i18n 值（Bug 2 修复：避免每次搜索时重复调用）
+        i18nAll = I18NUtil.get("common.all");
+        i18nEnabled = I18NUtil.get("user.enabled");
+        i18nDisabled = I18NUtil.get("user.disabled");
 
         // 启用Grid多选模式
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
@@ -101,10 +111,10 @@ public class UserListView extends BaseListView<User, UserService> {
         grid.addColumn(user -> "").setHeader("").setWidth("30px").setFlexGrow(0);
 
         grid.addColumn(User::getId).setHeader("ID").setWidth("80px").setFlexGrow(0).setSortable(true);
-        grid.addColumn(User::getUserName).setHeader("用户名").setFlexGrow(1);
-        grid.addColumn(User::getNickname).setHeader("昵称").setFlexGrow(1);
-        grid.addColumn(User::getEmail).setHeader("邮箱").setFlexGrow(1);
-        grid.addColumn(User::getPhone).setHeader("手机号").setFlexGrow(1);
+        grid.addColumn(User::getUserName).setHeader(I18NUtil.get("user.userName")).setFlexGrow(1);
+        grid.addColumn(User::getNickname).setHeader(I18NUtil.get("user.nickname")).setFlexGrow(1);
+        grid.addColumn(User::getEmail).setHeader(I18NUtil.get("user.email")).setFlexGrow(1);
+        grid.addColumn(User::getPhone).setHeader(I18NUtil.get("user.phone")).setFlexGrow(1);
 
         // 优化状态列显示（使用图标和颜色）
         grid.addComponentColumn(user -> {
@@ -127,7 +137,7 @@ public class UserListView extends BaseListView<User, UserService> {
             }
 
             // 创建文本
-            Span textSpan = new Span(enabled ? "启用" : "禁用");
+            Span textSpan = new Span(enabled ? I18NUtil.get("user.enabled") : I18NUtil.get("user.disabled"));
             textSpan.getStyle().set("font-size", "var(--lumo-font-size-s)");
 
             statusLayout.add(icon, textSpan);
@@ -135,25 +145,25 @@ public class UserListView extends BaseListView<User, UserService> {
             statusLayout.setFlexGrow(1, textSpan);
 
             return statusLayout;
-        }).setHeader("状态").setWidth("100px").setFlexGrow(0);
+        }).setHeader(I18NUtil.get("user.status")).setWidth("100px").setFlexGrow(0);
 
-        grid.addColumn(User::getCreatedAt).setHeader("创建时间").setWidth("180px").setFlexGrow(0).setSortable(true);
-        grid.addColumn(User::getUpdatedAt).setHeader("更新时间").setWidth("180px").setFlexGrow(0).setSortable(true);
+        grid.addColumn(User::getCreatedAt).setHeader(I18NUtil.get("user.createdAt")).setWidth("180px").setFlexGrow(0).setSortable(true);
+        grid.addColumn(User::getUpdatedAt).setHeader(I18NUtil.get("user.updatedAt")).setWidth("180px").setFlexGrow(0).setSortable(true);
 
         // 添加操作列
         grid.addComponentColumn(user -> {
             HorizontalLayout actionLayout = new HorizontalLayout();
             actionLayout.setSpacing(true);
 
-            Button editButton = new Button("编辑", new Icon(VaadinIcon.EDIT));
+            Button editButton = new Button(I18NUtil.get("common.edit"), new Icon(VaadinIcon.EDIT));
             editButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
             editButton.addClickListener(e -> editEntity(user));
 
-            Button deleteButton = new Button("删除", new Icon(VaadinIcon.TRASH));
+            Button deleteButton = new Button(I18NUtil.get("common.delete"), new Icon(VaadinIcon.TRASH));
             deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
             deleteButton.addClickListener(e -> deleteEntity(user));
 
-            Button assignRoleButton = new Button("分配角色", new Icon(VaadinIcon.USER_CHECK));
+            Button assignRoleButton = new Button(I18NUtil.get("user.assign.role"), new Icon(VaadinIcon.USER_CHECK));
             assignRoleButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_SUCCESS);
             assignRoleButton.addClickListener(e -> {
                 UserRoleAssignDialog dialog = new UserRoleAssignDialog(
@@ -167,7 +177,7 @@ public class UserListView extends BaseListView<User, UserService> {
 
             actionLayout.add(editButton, deleteButton, assignRoleButton);
             return actionLayout;
-        }).setHeader("操作").setWidth("280px").setFlexGrow(0);
+        }).setHeader(I18NUtil.get("user.operation")).setWidth("280px").setFlexGrow(0);
     }
 
     @Override
@@ -205,11 +215,11 @@ public class UserListView extends BaseListView<User, UserService> {
      * 构建工具栏
      */
     private HorizontalLayout buildToolbar() {
-        Button addButton = new Button("添加用户", new Icon(VaadinIcon.PLUS));
+        Button addButton = new Button(I18NUtil.get("user.add"), new Icon(VaadinIcon.PLUS));
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addButton.addClickListener(e -> addEntity());
 
-        Button refreshButton = new Button("刷新", new Icon(VaadinIcon.REFRESH));
+        Button refreshButton = new Button(I18NUtil.get("common.refresh"), new Icon(VaadinIcon.REFRESH));
         refreshButton.addClickListener(e -> performSearch());
 
         HorizontalLayout toolbar = new HorizontalLayout(addButton, refreshButton);
@@ -224,46 +234,46 @@ public class UserListView extends BaseListView<User, UserService> {
      * 构建搜索栏
      */
     private HorizontalLayout buildSearchBar() {
-        userNameSearchField = new TextField("用户名");
-        userNameSearchField.setPlaceholder("请输入用户名");
+        userNameSearchField = new TextField(I18NUtil.get("user.userName"));
+        userNameSearchField.setPlaceholder(I18NUtil.get("user.placeholder.userName"));
         userNameSearchField.setWidth("200px");
         userNameSearchField.setClearButtonVisible(true);
         userNameSearchField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         userNameSearchField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        nicknameSearchField = new TextField("昵称");
-        nicknameSearchField.setPlaceholder("请输入昵称");
+        nicknameSearchField = new TextField(I18NUtil.get("user.nickname"));
+        nicknameSearchField.setPlaceholder(I18NUtil.get("user.placeholder.nickname"));
         nicknameSearchField.setWidth("200px");
         nicknameSearchField.setClearButtonVisible(true);
         nicknameSearchField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         nicknameSearchField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        emailSearchField = new TextField("邮箱");
-        emailSearchField.setPlaceholder("请输入邮箱");
+        emailSearchField = new TextField(I18NUtil.get("user.email"));
+        emailSearchField.setPlaceholder(I18NUtil.get("user.placeholder.email"));
         emailSearchField.setWidth("200px");
         emailSearchField.setClearButtonVisible(true);
         emailSearchField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         emailSearchField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        phoneSearchField = new TextField("手机号");
-        phoneSearchField.setPlaceholder("请输入手机号");
+        phoneSearchField = new TextField(I18NUtil.get("user.phone"));
+        phoneSearchField.setPlaceholder(I18NUtil.get("user.placeholder.phone"));
         phoneSearchField.setWidth("200px");
         phoneSearchField.setClearButtonVisible(true);
         phoneSearchField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         phoneSearchField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        statusFilter = new ComboBox<>("状态");
-        statusFilter.setItems("全部", "启用", "禁用");
-        statusFilter.setValue("全部");
+        statusFilter = new ComboBox<>(I18NUtil.get("user.status"));
+        statusFilter.setItems(i18nAll, i18nEnabled, i18nDisabled);
+        statusFilter.setValue(i18nAll);
         statusFilter.setWidth("120px");
         statusFilter.setClearButtonVisible(true);
-        statusFilter.setPlaceholder("选择状态");
+        statusFilter.setPlaceholder(I18NUtil.get("user.placeholder.status"));
 
-        searchButton = new Button("搜索", new Icon(VaadinIcon.SEARCH));
+        searchButton = new Button(I18NUtil.get("common.search"), new Icon(VaadinIcon.SEARCH));
         searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         searchButton.addClickListener(e -> performSearch());
 
-        resetButton = new Button("重置", new Icon(VaadinIcon.REFRESH));
+        resetButton = new Button(I18NUtil.get("common.reset"), new Icon(VaadinIcon.REFRESH));
         resetButton.addClickListener(e -> resetSearch());
 
         HorizontalLayout searchBar = new HorizontalLayout(
@@ -281,15 +291,15 @@ public class UserListView extends BaseListView<User, UserService> {
      * 构建批量操作栏
      */
     private HorizontalLayout buildBatchOperationBar() {
-        batchDeleteButton = new Button("批量删除", new Icon(VaadinIcon.TRASH));
+        batchDeleteButton = new Button(I18NUtil.get("user.batch.delete"), new Icon(VaadinIcon.TRASH));
         batchDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
         batchDeleteButton.addClickListener(e -> performBatchDelete());
 
-        batchEnableButton = new Button("批量启用", new Icon(VaadinIcon.CHECK));
+        batchEnableButton = new Button(I18NUtil.get("user.batch.enable"), new Icon(VaadinIcon.CHECK));
         batchEnableButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         batchEnableButton.addClickListener(e -> performBatchUpdateStatus(true));
 
-        batchDisableButton = new Button("批量禁用", new Icon(VaadinIcon.CLOSE));
+        batchDisableButton = new Button(I18NUtil.get("user.batch.disable"), new Icon(VaadinIcon.CLOSE));
         batchDisableButton.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
         batchDisableButton.addClickListener(e -> performBatchUpdateStatus(false));
 
@@ -306,14 +316,14 @@ public class UserListView extends BaseListView<User, UserService> {
      * 构建分页组件
      */
     private HorizontalLayout buildPagination() {
-        firstPageButton = new Button("首页", new Icon(VaadinIcon.ANGLE_DOUBLE_LEFT));
+        firstPageButton = new Button(I18NUtil.get("common.firstPage"), new Icon(VaadinIcon.ANGLE_DOUBLE_LEFT));
         firstPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         firstPageButton.addClickListener(e -> {
             currentPageRequest.setPageNum(1);
             performSearch();
         });
 
-        prevPageButton = new Button("上一页", new Icon(VaadinIcon.ANGLE_LEFT));
+        prevPageButton = new Button(I18NUtil.get("common.prevPage"), new Icon(VaadinIcon.ANGLE_LEFT));
         prevPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         prevPageButton.addClickListener(e -> {
             if (currentPageRequest.getPageNum() > 1) {
@@ -322,7 +332,7 @@ public class UserListView extends BaseListView<User, UserService> {
             }
         });
 
-        nextPageButton = new Button("下一页", new Icon(VaadinIcon.ANGLE_RIGHT));
+        nextPageButton = new Button(I18NUtil.get("common.nextPage"), new Icon(VaadinIcon.ANGLE_RIGHT));
         nextPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         nextPageButton.addClickListener(e -> {
             if (currentPageResult != null && currentPageResult.getData() != null) {
@@ -335,7 +345,7 @@ public class UserListView extends BaseListView<User, UserService> {
             }
         });
 
-        lastPageButton = new Button("末页", new Icon(VaadinIcon.ANGLE_DOUBLE_RIGHT));
+        lastPageButton = new Button(I18NUtil.get("common.lastPage"), new Icon(VaadinIcon.ANGLE_DOUBLE_RIGHT));
         lastPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         lastPageButton.addClickListener(e -> {
             if (currentPageResult != null && currentPageResult.getData() != null) {
@@ -400,7 +410,7 @@ public class UserListView extends BaseListView<User, UserService> {
             } else {
                 grid.setItems(new ArrayList<>());
                 if (pageInfo != null) {
-                    pageInfo.setText("暂无数据");
+                    pageInfo.setText(I18NUtil.get("common.noData"));
                     updatePaginationButtons(false, false);
                 }
             }
@@ -411,7 +421,7 @@ public class UserListView extends BaseListView<User, UserService> {
             }
 
         } catch (Exception e) {
-            NotificationUtil.showError("查询失败：" + e.getMessage());
+            NotificationUtil.showError(I18NUtil.get("user.query.failed", e.getMessage()));
             e.printStackTrace();
         }
     }
@@ -453,9 +463,17 @@ public class UserListView extends BaseListView<User, UserService> {
 
         if (statusFilter != null) {
             String status = statusFilter.getValue();
+            // #region agent log
+            try {
+                java.io.FileWriter fw = new java.io.FileWriter("/Users/hjoe/ai-creation/vaadin-admin/.cursor/debug.log", true);
+                fw.write(String.format("{\"id\":\"log_%d_user_build\",\"timestamp\":%d,\"location\":\"UserListView.java:455\",\"message\":\"buildQuery called\",\"data\":{\"status\":\"%s\",\"i18nAll\":\"%s\",\"i18nEnabled\":\"%s\",\"i18nDisabled\":\"%s\"},\"sessionId\":\"debug-session\",\"runId\":\"post-fix\",\"hypothesisId\":\"H4\"}\n", System.currentTimeMillis(), System.currentTimeMillis(), status != null ? status : "null", i18nAll, i18nEnabled, i18nDisabled));
+                fw.close();
+            } catch (Exception e) {}
+            // #endregion
             // 如果清除选择（值为null或空），或者选择"全部"，则不设置状态筛选条件
-            if (status != null && !status.trim().isEmpty() && !"全部".equals(status)) {
-                currentQuery.setIsEnabled("启用".equals(status));
+            // Bug 2 修复：使用缓存的 i18n 值，而不是每次调用 I18NUtil.get()
+            if (status != null && !status.trim().isEmpty() && !i18nAll.equals(status)) {
+                currentQuery.setIsEnabled(i18nEnabled.equals(status));
             }
         }
     }
@@ -477,7 +495,7 @@ public class UserListView extends BaseListView<User, UserService> {
             phoneSearchField.clear();
         }
         if (statusFilter != null) {
-            statusFilter.setValue("全部");
+            statusFilter.setValue(i18nAll);
         }
         currentPageRequest.setPageNum(1);
         performSearch();
@@ -508,7 +526,7 @@ public class UserListView extends BaseListView<User, UserService> {
     private void performBatchDelete() {
         Set<User> selected = grid.getSelectedItems();
         if (selected.isEmpty()) {
-            NotificationUtil.showError("请至少选择一个用户");
+            NotificationUtil.showError(I18NUtil.get("common.selectAtLeastOne") + I18NUtil.get("user.title"));
             return;
         }
 
@@ -516,22 +534,22 @@ public class UserListView extends BaseListView<User, UserService> {
         String names = selected.stream().map(User::getUserName).collect(Collectors.joining("、"));
 
         ConfirmDialog confirmDialog = new ConfirmDialog();
-        confirmDialog.setHeader("确认批量删除");
-        confirmDialog.setText("确定要删除以下 " + ids.size() + " 个用户吗？\n" + names + "\n此操作不可恢复。");
-        confirmDialog.setConfirmText("删除");
+        confirmDialog.setHeader(I18NUtil.get("confirm.batch.delete.title"));
+        confirmDialog.setText(I18NUtil.get("user.batch.delete.confirm", ids.size(), names));
+        confirmDialog.setConfirmText(I18NUtil.get("common.delete"));
         confirmDialog.setConfirmButtonTheme("error primary");
-        confirmDialog.setCancelText("取消");
+        confirmDialog.setCancelText(I18NUtil.get("common.cancel"));
         confirmDialog.setCancelButtonTheme("tertiary");
         confirmDialog.setCancelable(true);
 
         confirmDialog.addConfirmListener(e -> {
             try {
                 service.batchDeleteUsers(ids);
-                NotificationUtil.showSuccess("批量删除成功，共删除 " + ids.size() + " 个用户");
+                NotificationUtil.showSuccess(I18NUtil.get("user.batch.delete.success", ids.size()));
                 grid.deselectAll();
                 performSearch();
             } catch (Exception ex) {
-                NotificationUtil.showError("批量删除失败：" + ex.getMessage());
+                NotificationUtil.showError(I18NUtil.get("user.batch.delete.failed", ex.getMessage()));
             }
         });
 
@@ -548,30 +566,32 @@ public class UserListView extends BaseListView<User, UserService> {
     private void performBatchUpdateStatus(boolean isEnabled) {
         Set<User> selected = grid.getSelectedItems();
         if (selected.isEmpty()) {
-            NotificationUtil.showError("请至少选择一个用户");
+            NotificationUtil.showError(I18NUtil.get("common.selectAtLeastOne") + I18NUtil.get("user.title"));
             return;
         }
 
         List<Long> ids = selected.stream().map(User::getId).collect(Collectors.toList());
-        String action = isEnabled ? "启用" : "禁用";
+        String actionKey = isEnabled ? "user.batch.enable" : "user.batch.disable";
+        String action = isEnabled ? I18NUtil.get("user.enabled") : I18NUtil.get("user.disabled");
 
         ConfirmDialog confirmDialog = new ConfirmDialog();
-        confirmDialog.setHeader("确认批量" + action);
-        confirmDialog.setText("确定要" + action + "以下 " + ids.size() + " 个用户吗？");
+        String confirmKey = isEnabled ? "confirm.batch.enable" : "confirm.batch.disable";
+        confirmDialog.setHeader(I18NUtil.get(confirmKey + ".title"));
+        confirmDialog.setText(I18NUtil.get(confirmKey + ".text", ids.size(), I18NUtil.get("user.title")));
         confirmDialog.setConfirmText(action);
         confirmDialog.setConfirmButtonTheme("primary");
-        confirmDialog.setCancelText("取消");
+        confirmDialog.setCancelText(I18NUtil.get("common.cancel"));
         confirmDialog.setCancelButtonTheme("tertiary");
         confirmDialog.setCancelable(true);
 
         confirmDialog.addConfirmListener(e -> {
             try {
                 service.batchUpdateUserStatus(ids, isEnabled);
-                NotificationUtil.showSuccess("批量" + action + "成功，共" + action + " " + ids.size() + " 个用户");
+                NotificationUtil.showSuccess(I18NUtil.get(actionKey + ".success", ids.size()));
                 grid.deselectAll();
                 performSearch();
             } catch (Exception ex) {
-                NotificationUtil.showError("批量" + action + "失败：" + ex.getMessage());
+                NotificationUtil.showError(I18NUtil.get(actionKey + ".failed", ex.getMessage()));
             }
         });
 
@@ -592,7 +612,7 @@ public class UserListView extends BaseListView<User, UserService> {
             int pageSize = currentPageResult.getData().getPageSize();
             int totalPages = (int) Math.ceil((double) total / pageSize);
 
-            pageInfo.setText(String.format("第 %d/%d 页，共 %d 条记录", pageNum, totalPages > 0 ? totalPages : 1, total));
+            pageInfo.setText(I18NUtil.get("pagination.info", pageNum, totalPages > 0 ? totalPages : 1, total));
 
             // 更新按钮状态
             updatePaginationButtons(pageNum > 1, pageNum < totalPages);
@@ -613,5 +633,10 @@ public class UserListView extends BaseListView<User, UserService> {
     protected void updateList() {
         // 重写此方法，使用分页查询
         performSearch();
+    }
+
+    @Override
+    public String getPageTitle() {
+        return I18NUtil.get("page.user.management");
     }
 }

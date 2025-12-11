@@ -5,6 +5,7 @@ import com.admin.dto.MenuQueryDTO;
 import com.admin.dto.PageRequest;
 import com.admin.entity.Menu;
 import com.admin.service.MenuService;
+import com.admin.util.I18NUtil;
 import com.admin.util.NotificationUtil;
 import com.admin.util.PageResult;
 import com.admin.views.MainLayout;
@@ -20,7 +21,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 
 import java.util.ArrayList;
@@ -35,8 +36,7 @@ import java.util.stream.Collectors;
  * @date 2024-01-01
  */
 @Route(value = "menus", layout = MainLayout.class)
-@PageTitle("菜单管理")
-public class MenuListView extends BaseListView<Menu, MenuService> {
+public class MenuListView extends BaseListView<Menu, MenuService> implements HasDynamicTitle {
 
     // 搜索和筛选组件
     private TextField nameSearchField;
@@ -44,6 +44,11 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
     private ComboBox<String> statusFilter;
     private Button searchButton;
     private Button resetButton;
+
+    // 缓存的 i18n 值（Bug 2 修复）
+    private String i18nAll;
+    private String i18nEnabled;
+    private String i18nDisabled;
 
     // 批量操作组件
     private Button batchDeleteButton;
@@ -66,7 +71,12 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
     private PageResult<Menu> currentPageResult;
 
     public MenuListView(MenuService menuService) {
-        super(menuService, Menu.class, "菜单", "添加菜单", "menu-list-view");
+        super(menuService, Menu.class, I18NUtil.get("menu.title"), I18NUtil.get("menu.add"), "menu-list-view");
+
+        // 缓存 i18n 值（Bug 2 修复：避免每次搜索时重复调用）
+        i18nAll = I18NUtil.get("common.all");
+        i18nEnabled = I18NUtil.get("menu.enabled");
+        i18nDisabled = I18NUtil.get("menu.disabled");
 
         // 启用Grid多选模式
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
@@ -95,11 +105,11 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
         grid.addColumn(menu -> "").setHeader("").setWidth("30px").setFlexGrow(0);
 
         grid.addColumn(Menu::getId).setHeader("ID").setWidth("80px").setFlexGrow(0).setSortable(true);
-        grid.addColumn(Menu::getName).setHeader("菜单名称").setFlexGrow(1);
-        grid.addColumn(Menu::getPath).setHeader("路径").setFlexGrow(1);
-        grid.addColumn(Menu::getComponent).setHeader("组件").setFlexGrow(1);
-        grid.addColumn(Menu::getIcon).setHeader("图标").setWidth("120px").setFlexGrow(0);
-        grid.addColumn(Menu::getSort).setHeader("排序").setWidth("80px").setFlexGrow(0).setSortable(true);
+        grid.addColumn(Menu::getName).setHeader(I18NUtil.get("menu.name")).setFlexGrow(1);
+        grid.addColumn(Menu::getPath).setHeader(I18NUtil.get("menu.path")).setFlexGrow(1);
+        grid.addColumn(Menu::getComponent).setHeader(I18NUtil.get("menu.component")).setFlexGrow(1);
+        grid.addColumn(Menu::getIcon).setHeader(I18NUtil.get("menu.icon")).setWidth("120px").setFlexGrow(0);
+        grid.addColumn(Menu::getSort).setHeader(I18NUtil.get("menu.sort")).setWidth("80px").setFlexGrow(0).setSortable(true);
 
         // 优化状态列显示（使用图标和颜色）
         grid.addComponentColumn(menu -> {
@@ -122,7 +132,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
             }
 
             // 创建文本
-            Span textSpan = new Span(enabled ? "启用" : "禁用");
+            Span textSpan = new Span(enabled ? I18NUtil.get("menu.enabled") : I18NUtil.get("menu.disabled"));
             textSpan.getStyle().set("font-size", "var(--lumo-font-size-s)");
 
             statusLayout.add(icon, textSpan);
@@ -130,27 +140,27 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
             statusLayout.setFlexGrow(1, textSpan);
 
             return statusLayout;
-        }).setHeader("状态").setWidth("100px").setFlexGrow(0);
+        }).setHeader(I18NUtil.get("menu.status")).setWidth("100px").setFlexGrow(0);
 
-        grid.addColumn(Menu::getCreatedAt).setHeader("创建时间").setWidth("180px").setFlexGrow(0).setSortable(true);
-        grid.addColumn(Menu::getUpdatedAt).setHeader("更新时间").setWidth("180px").setFlexGrow(0).setSortable(true);
+        grid.addColumn(Menu::getCreatedAt).setHeader(I18NUtil.get("menu.createdAt")).setWidth("180px").setFlexGrow(0).setSortable(true);
+        grid.addColumn(Menu::getUpdatedAt).setHeader(I18NUtil.get("menu.updatedAt")).setWidth("180px").setFlexGrow(0).setSortable(true);
 
         // 添加操作列
         grid.addComponentColumn(menu -> {
             HorizontalLayout actionLayout = new HorizontalLayout();
             actionLayout.setSpacing(true);
 
-            Button editButton = new Button("编辑", new Icon(VaadinIcon.EDIT));
+            Button editButton = new Button(I18NUtil.get("common.edit"), new Icon(VaadinIcon.EDIT));
             editButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
             editButton.addClickListener(e -> editEntity(menu));
 
-            Button deleteButton = new Button("删除", new Icon(VaadinIcon.TRASH));
+            Button deleteButton = new Button(I18NUtil.get("common.delete"), new Icon(VaadinIcon.TRASH));
             deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
             deleteButton.addClickListener(e -> deleteEntity(menu));
 
             actionLayout.add(editButton, deleteButton);
             return actionLayout;
-        }).setHeader("操作").setWidth("180px").setFlexGrow(0);
+        }).setHeader(I18NUtil.get("menu.operation")).setWidth("180px").setFlexGrow(0);
     }
 
     @Override
@@ -180,11 +190,11 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
      * 构建工具栏
      */
     private HorizontalLayout buildToolbar() {
-        Button addButton = new Button("添加菜单", new Icon(VaadinIcon.PLUS));
+        Button addButton = new Button(I18NUtil.get("menu.add"), new Icon(VaadinIcon.PLUS));
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addButton.addClickListener(e -> addEntity());
 
-        Button refreshButton = new Button("刷新", new Icon(VaadinIcon.REFRESH));
+        Button refreshButton = new Button(I18NUtil.get("common.refresh"), new Icon(VaadinIcon.REFRESH));
         refreshButton.addClickListener(e -> performSearch());
 
         HorizontalLayout toolbar = new HorizontalLayout(addButton, refreshButton);
@@ -199,32 +209,32 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
      * 构建搜索栏
      */
     private HorizontalLayout buildSearchBar() {
-        nameSearchField = new TextField("菜单名称");
-        nameSearchField.setPlaceholder("请输入菜单名称");
+        nameSearchField = new TextField(I18NUtil.get("menu.name"));
+        nameSearchField.setPlaceholder(I18NUtil.get("menu.placeholder.name"));
         nameSearchField.setWidth("200px");
         nameSearchField.setClearButtonVisible(true);
         nameSearchField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         nameSearchField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        pathSearchField = new TextField("菜单路径");
-        pathSearchField.setPlaceholder("请输入菜单路径");
+        pathSearchField = new TextField(I18NUtil.get("menu.path"));
+        pathSearchField.setPlaceholder(I18NUtil.get("menu.placeholder.path"));
         pathSearchField.setWidth("200px");
         pathSearchField.setClearButtonVisible(true);
         pathSearchField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         pathSearchField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        statusFilter = new ComboBox<>("状态");
-        statusFilter.setItems("全部", "启用", "禁用");
-        statusFilter.setValue("全部");
+        statusFilter = new ComboBox<>(I18NUtil.get("menu.status"));
+        statusFilter.setItems(i18nAll, i18nEnabled, i18nDisabled);
+        statusFilter.setValue(i18nAll);
         statusFilter.setWidth("120px");
         statusFilter.setClearButtonVisible(true);
-        statusFilter.setPlaceholder("选择状态");
+        statusFilter.setPlaceholder(I18NUtil.get("menu.placeholder.status"));
 
-        searchButton = new Button("搜索", new Icon(VaadinIcon.SEARCH));
+        searchButton = new Button(I18NUtil.get("common.search"), new Icon(VaadinIcon.SEARCH));
         searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         searchButton.addClickListener(e -> performSearch());
 
-        resetButton = new Button("重置", new Icon(VaadinIcon.REFRESH));
+        resetButton = new Button(I18NUtil.get("common.reset"), new Icon(VaadinIcon.REFRESH));
         resetButton.addClickListener(e -> resetSearch());
 
         HorizontalLayout searchBar = new HorizontalLayout(
@@ -242,15 +252,15 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
      * 构建批量操作栏
      */
     private HorizontalLayout buildBatchOperationBar() {
-        batchDeleteButton = new Button("批量删除", new Icon(VaadinIcon.TRASH));
+        batchDeleteButton = new Button(I18NUtil.get("menu.batch.delete"), new Icon(VaadinIcon.TRASH));
         batchDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
         batchDeleteButton.addClickListener(e -> performBatchDelete());
 
-        batchEnableButton = new Button("批量启用", new Icon(VaadinIcon.CHECK));
+        batchEnableButton = new Button(I18NUtil.get("menu.batch.enable"), new Icon(VaadinIcon.CHECK));
         batchEnableButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         batchEnableButton.addClickListener(e -> performBatchUpdateStatus(true));
 
-        batchDisableButton = new Button("批量禁用", new Icon(VaadinIcon.CLOSE));
+        batchDisableButton = new Button(I18NUtil.get("menu.batch.disable"), new Icon(VaadinIcon.CLOSE));
         batchDisableButton.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
         batchDisableButton.addClickListener(e -> performBatchUpdateStatus(false));
 
@@ -267,14 +277,14 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
      * 构建分页组件
      */
     private HorizontalLayout buildPagination() {
-        firstPageButton = new Button("首页", new Icon(VaadinIcon.ANGLE_DOUBLE_LEFT));
+        firstPageButton = new Button(I18NUtil.get("common.firstPage"), new Icon(VaadinIcon.ANGLE_DOUBLE_LEFT));
         firstPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         firstPageButton.addClickListener(e -> {
             currentPageRequest.setPageNum(1);
             performSearch();
         });
 
-        prevPageButton = new Button("上一页", new Icon(VaadinIcon.ANGLE_LEFT));
+        prevPageButton = new Button(I18NUtil.get("common.prevPage"), new Icon(VaadinIcon.ANGLE_LEFT));
         prevPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         prevPageButton.addClickListener(e -> {
             if (currentPageRequest.getPageNum() > 1) {
@@ -283,7 +293,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
             }
         });
 
-        nextPageButton = new Button("下一页", new Icon(VaadinIcon.ANGLE_RIGHT));
+        nextPageButton = new Button(I18NUtil.get("common.nextPage"), new Icon(VaadinIcon.ANGLE_RIGHT));
         nextPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         nextPageButton.addClickListener(e -> {
             if (currentPageResult != null && currentPageResult.getData() != null) {
@@ -296,7 +306,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
             }
         });
 
-        lastPageButton = new Button("末页", new Icon(VaadinIcon.ANGLE_DOUBLE_RIGHT));
+        lastPageButton = new Button(I18NUtil.get("common.lastPage"), new Icon(VaadinIcon.ANGLE_DOUBLE_RIGHT));
         lastPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         lastPageButton.addClickListener(e -> {
             if (currentPageResult != null && currentPageResult.getData() != null) {
@@ -360,7 +370,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
             } else {
                 grid.setItems(new ArrayList<>());
                 if (pageInfo != null) {
-                    pageInfo.setText("暂无数据");
+                    pageInfo.setText(I18NUtil.get("common.noData"));
                     updatePaginationButtons(false, false);
                 }
             }
@@ -371,7 +381,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
             }
 
         } catch (Exception e) {
-            NotificationUtil.showError("查询失败：" + e.getMessage());
+            NotificationUtil.showError(I18NUtil.get("menu.query.failed", e.getMessage()));
             e.printStackTrace();
         }
     }
@@ -399,9 +409,17 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
 
         if (statusFilter != null) {
             String status = statusFilter.getValue();
+            // #region agent log
+            try {
+                java.io.FileWriter fw = new java.io.FileWriter("/Users/hjoe/ai-creation/vaadin-admin/.cursor/debug.log", true);
+                fw.write(String.format("{\"id\":\"log_%d_menu_build\",\"timestamp\":%d,\"location\":\"MenuListView.java:401\",\"message\":\"buildQuery called\",\"data\":{\"status\":\"%s\",\"i18nAll\":\"%s\",\"i18nEnabled\":\"%s\",\"i18nDisabled\":\"%s\"},\"sessionId\":\"debug-session\",\"runId\":\"post-fix\",\"hypothesisId\":\"H4\"}\n", System.currentTimeMillis(), System.currentTimeMillis(), status != null ? status : "null", i18nAll, i18nEnabled, i18nDisabled));
+                fw.close();
+            } catch (Exception e) {}
+            // #endregion
             // 如果清除选择（值为null或空），或者选择"全部"，则不设置状态筛选条件
-            if (status != null && !status.trim().isEmpty() && !"全部".equals(status)) {
-                currentQuery.setIsEnabled("启用".equals(status));
+            // Bug 2 修复：使用缓存的 i18n 值，而不是每次调用 I18NUtil.get()
+            if (status != null && !status.trim().isEmpty() && !i18nAll.equals(status)) {
+                currentQuery.setIsEnabled(i18nEnabled.equals(status));
             }
         }
     }
@@ -417,7 +435,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
             pathSearchField.clear();
         }
         if (statusFilter != null) {
-            statusFilter.setValue("全部");
+            statusFilter.setValue(i18nAll);
         }
         currentPageRequest.setPageNum(1);
         performSearch();
@@ -448,7 +466,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
     private void performBatchDelete() {
         Set<Menu> selected = grid.getSelectedItems();
         if (selected.isEmpty()) {
-            NotificationUtil.showError("请至少选择一个菜单");
+            NotificationUtil.showError(I18NUtil.get("common.selectAtLeastOne") + I18NUtil.get("menu.title"));
             return;
         }
 
@@ -456,22 +474,22 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
         String names = selected.stream().map(Menu::getName).collect(Collectors.joining("、"));
 
         ConfirmDialog confirmDialog = new ConfirmDialog();
-        confirmDialog.setHeader("确认批量删除");
-        confirmDialog.setText("确定要删除以下 " + ids.size() + " 个菜单吗？\n" + names + "\n此操作不可恢复。");
-        confirmDialog.setConfirmText("删除");
+        confirmDialog.setHeader(I18NUtil.get("confirm.batch.delete.title"));
+        confirmDialog.setText(I18NUtil.get("menu.batch.delete.confirm", ids.size(), names));
+        confirmDialog.setConfirmText(I18NUtil.get("common.delete"));
         confirmDialog.setConfirmButtonTheme("error primary");
-        confirmDialog.setCancelText("取消");
+        confirmDialog.setCancelText(I18NUtil.get("common.cancel"));
         confirmDialog.setCancelButtonTheme("tertiary");
         confirmDialog.setCancelable(true);
 
         confirmDialog.addConfirmListener(e -> {
             try {
                 service.batchDeleteMenus(ids);
-                NotificationUtil.showSuccess("批量删除成功，共删除 " + ids.size() + " 个菜单");
+                NotificationUtil.showSuccess(I18NUtil.get("menu.batch.delete.success", ids.size()));
                 grid.deselectAll();
                 performSearch();
             } catch (Exception ex) {
-                NotificationUtil.showError("批量删除失败：" + ex.getMessage());
+                NotificationUtil.showError(I18NUtil.get("menu.batch.delete.failed", ex.getMessage()));
             }
         });
 
@@ -488,30 +506,32 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
     private void performBatchUpdateStatus(boolean isEnabled) {
         Set<Menu> selected = grid.getSelectedItems();
         if (selected.isEmpty()) {
-            NotificationUtil.showError("请至少选择一个菜单");
+            NotificationUtil.showError(I18NUtil.get("common.selectAtLeastOne") + I18NUtil.get("menu.title"));
             return;
         }
 
         List<Long> ids = selected.stream().map(Menu::getId).collect(Collectors.toList());
-        String action = isEnabled ? "启用" : "禁用";
+        String actionKey = isEnabled ? "menu.batch.enable" : "menu.batch.disable";
+        String action = isEnabled ? I18NUtil.get("menu.enabled") : I18NUtil.get("menu.disabled");
 
         ConfirmDialog confirmDialog = new ConfirmDialog();
-        confirmDialog.setHeader("确认批量" + action);
-        confirmDialog.setText("确定要" + action + "以下 " + ids.size() + " 个菜单吗？");
+        String confirmKey = isEnabled ? "confirm.batch.enable" : "confirm.batch.disable";
+        confirmDialog.setHeader(I18NUtil.get(confirmKey + ".title"));
+        confirmDialog.setText(I18NUtil.get(confirmKey + ".text", ids.size(), I18NUtil.get("menu.title")));
         confirmDialog.setConfirmText(action);
         confirmDialog.setConfirmButtonTheme("primary");
-        confirmDialog.setCancelText("取消");
+        confirmDialog.setCancelText(I18NUtil.get("common.cancel"));
         confirmDialog.setCancelButtonTheme("tertiary");
         confirmDialog.setCancelable(true);
 
         confirmDialog.addConfirmListener(e -> {
             try {
                 service.batchUpdateMenuStatus(ids, isEnabled);
-                NotificationUtil.showSuccess("批量" + action + "成功，共" + action + " " + ids.size() + " 个菜单");
+                NotificationUtil.showSuccess(I18NUtil.get(actionKey + ".success", ids.size()));
                 grid.deselectAll();
                 performSearch();
             } catch (Exception ex) {
-                NotificationUtil.showError("批量" + action + "失败：" + ex.getMessage());
+                NotificationUtil.showError(I18NUtil.get(actionKey + ".failed", ex.getMessage()));
             }
         });
 
@@ -532,7 +552,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
             int pageSize = currentPageResult.getData().getPageSize();
             int totalPages = (int) Math.ceil((double) total / pageSize);
 
-            pageInfo.setText(String.format("第 %d/%d 页，共 %d 条记录", pageNum, totalPages > 0 ? totalPages : 1, total));
+            pageInfo.setText(I18NUtil.get("pagination.info", pageNum, totalPages > 0 ? totalPages : 1, total));
 
             // 更新按钮状态
             updatePaginationButtons(pageNum > 1, pageNum < totalPages);
@@ -553,5 +573,10 @@ public class MenuListView extends BaseListView<Menu, MenuService> {
     protected void updateList() {
         // 重写此方法，使用分页查询
         performSearch();
+    }
+
+    @Override
+    public String getPageTitle() {
+        return I18NUtil.get("page.menu.management");
     }
 }

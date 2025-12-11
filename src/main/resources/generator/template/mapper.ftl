@@ -40,3 +40,4 @@ public interface ${entityName}Mapper {
     int deleteById(@Param("id") Long id);
 }
 
+

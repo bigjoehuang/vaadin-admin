@@ -11,5 +11,6 @@ import com.vaadin.flow.theme.Theme;
  */
 @Theme("admin-theme")
 public class AppShell implements AppShellConfigurator {
+    // 语言初始化在 MainLayout 中完成
 }
 

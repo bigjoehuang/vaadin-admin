@@ -3,6 +3,7 @@ package com.admin.views.role;
 import com.admin.component.BaseFormDialog;
 import com.admin.entity.Role;
 import com.admin.service.RoleService;
+import com.admin.util.I18NUtil;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.validator.StringLengthValidator;
@@ -37,44 +38,44 @@ public class RoleFormDialog extends BaseFormDialog<Role> {
         this.refreshCallback = refreshCallback;
         // 设置对话框标题
         if (isEdit) {
-            setHeaderTitle("编辑角色");
+            setHeaderTitle(I18NUtil.get("role.edit"));
         } else {
-            setHeaderTitle("新增角色");
+            setHeaderTitle(I18NUtil.get("role.new"));
         }
     }
 
     @Override
     protected void buildFormFields() {
-        nameField = new TextField("角色名称");
+        nameField = new TextField(I18NUtil.get("role.name"));
         nameField.setRequired(true);
         nameField.setRequiredIndicatorVisible(true);
         nameField.setWidthFull();
-        nameField.setPlaceholder("请输入角色名称，1-50个字符");
+        nameField.setPlaceholder(I18NUtil.get("role.placeholder.name.input"));
         // 通过Java代码设置label颜色，确保在获得焦点时可见
         nameField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         nameField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        codeField = new TextField("角色编码");
+        codeField = new TextField(I18NUtil.get("role.code"));
         codeField.setRequired(true);
         codeField.setRequiredIndicatorVisible(true);
         codeField.setWidthFull();
-        codeField.setPlaceholder("请输入角色编码，1-50个字符，唯一标识");
+        codeField.setPlaceholder(I18NUtil.get("role.placeholder.code.input"));
         // 通过Java代码设置label颜色
         codeField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         codeField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
         if (isEdit) {
             codeField.setReadOnly(true);
-            codeField.setHelperText("编辑模式下编码不可修改");
+            codeField.setHelperText(I18NUtil.get("role.helper.code.edit"));
         }
 
-        descriptionField = new TextField("描述");
+        descriptionField = new TextField(I18NUtil.get("role.description"));
         descriptionField.setWidthFull();
-        descriptionField.setPlaceholder("请输入角色描述，最多200个字符");
+        descriptionField.setPlaceholder(I18NUtil.get("role.placeholder.description"));
         // 通过Java代码设置label颜色
         descriptionField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         descriptionField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        enabledCheckbox = new Checkbox("是否启用");
+        enabledCheckbox = new Checkbox(I18NUtil.get("role.status"));
         enabledCheckbox.setValue(true);
 
         formLayout.add(nameField, 2);
@@ -128,13 +129,13 @@ public class RoleFormDialog extends BaseFormDialog<Role> {
     protected void configureBinder() {
         // 手动绑定字段
         binder.forField(nameField)
-                .asRequired("角色名称不能为空")
-                .withValidator(new StringLengthValidator("角色名称长度必须在1-50个字符之间", 1, 50))
+                .asRequired(I18NUtil.get("role.validation.name.required"))
+                .withValidator(new StringLengthValidator(I18NUtil.get("role.validation.name.length"), 1, 50))
                 .bind(Role::getName, Role::setName);
 
         binder.forField(codeField)
-                .asRequired("角色编码不能为空")
-                .withValidator(new StringLengthValidator("角色编码长度必须在1-50个字符之间", 1, 50))
+                .asRequired(I18NUtil.get("role.validation.code.required"))
+                .withValidator(new StringLengthValidator(I18NUtil.get("role.validation.code.length"), 1, 50))
                 .withValidator(code -> {
                     if (isEdit) {
                         // 编辑模式下，编码唯一性由Service层验证（已排除当前记录）
@@ -142,12 +143,12 @@ public class RoleFormDialog extends BaseFormDialog<Role> {
                     }
                     // 新增模式下检查编码是否已存在
                     return !isCodeExists(code);
-                }, "角色编码已存在，请使用其他编码")
+                }, I18NUtil.get("role.validation.code.exists"))
                 .bind(Role::getCode, Role::setCode);
 
         binder.forField(descriptionField)
                 .withValidator(description -> description == null || description.length() <= 200,
-                        "描述长度不能超过200个字符")
+                        I18NUtil.get("role.validation.description.length"))
                 .bind(Role::getDescription, Role::setDescription);
 
         binder.forField(enabledCheckbox)
@@ -177,10 +178,10 @@ public class RoleFormDialog extends BaseFormDialog<Role> {
         try {
             if (isEdit) {
                 roleService.updateRole(entity);
-                showSuccessAndClose("更新角色成功");
+                showSuccessAndClose(I18NUtil.get("role.update.success"));
             } else {
                 roleService.saveRole(entity);
-                showSuccessAndClose("保存角色成功");
+                showSuccessAndClose(I18NUtil.get("role.save.success"));
             }
             if (refreshCallback != null) {
                 refreshCallback.run();
@@ -190,7 +191,7 @@ public class RoleFormDialog extends BaseFormDialog<Role> {
             showError(e.getMessage());
         } catch (Exception e) {
             // 其他异常，显示通用错误信息
-            showError("操作失败：" + e.getMessage());
+            showError(I18NUtil.get("error.operation.failed") + ": " + e.getMessage());
             e.printStackTrace();
         }
     }

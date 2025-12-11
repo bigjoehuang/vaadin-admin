@@ -41,3 +41,4 @@ public class GeneratorConfig {
     private String tableComment;
 }
 
+

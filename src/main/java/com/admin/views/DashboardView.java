@@ -3,6 +3,7 @@ package com.admin.views;
 import com.admin.service.MenuService;
 import com.admin.service.RoleService;
 import com.admin.service.UserService;
+import com.admin.util.I18NUtil;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
@@ -11,7 +12,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
@@ -22,8 +23,16 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
  * @date 2024-01-01
  */
 @Route(value = "", layout = MainLayout.class)
-@PageTitle("仪表盘")
-public class DashboardView extends VerticalLayout implements AuthenticatedRoute {
+public class DashboardView extends VerticalLayout implements AuthenticatedRoute, HasDynamicTitle {
+    // #region agent log
+    {
+        try {
+            java.io.FileWriter fw = new java.io.FileWriter("/Users/hjoe/ai-creation/vaadin-admin/.cursor/debug.log", true);
+            fw.write(String.format("{\"id\":\"log_%d_dash_init\",\"timestamp\":%d,\"location\":\"DashboardView.java:27\",\"message\":\"DashboardView initialized\",\"data\":{\"pageTitle\":\"${page.dashboard}\",\"i18nTitle\":\"%s\"},\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"H1\"}\n", System.currentTimeMillis(), System.currentTimeMillis(), I18NUtil.get("page.dashboard")));
+            fw.close();
+        } catch (Exception e) {}
+    }
+    // #endregion
 
     private final UserService userService;
     private final RoleService roleService;
@@ -40,7 +49,7 @@ public class DashboardView extends VerticalLayout implements AuthenticatedRoute 
         setSpacing(true);
 
         // 标题
-        H2 title = new H2("仪表盘");
+        H2 title = new H2(I18NUtil.get("dashboard.title"));
         title.addClassNames(
                 LumoUtility.FontSize.XXXLARGE,
                 LumoUtility.FontWeight.BOLD,
@@ -56,7 +65,7 @@ public class DashboardView extends VerticalLayout implements AuthenticatedRoute 
 
         // 用户统计卡片
         VerticalLayout userCard = createStatCard(
-                "用户总数",
+                I18NUtil.get("dashboard.user.total"),
                 String.valueOf(userService.listUsers().size()),
                 VaadinIcon.USERS,
                 "var(--lumo-primary-color)"
@@ -65,7 +74,7 @@ public class DashboardView extends VerticalLayout implements AuthenticatedRoute 
 
         // 角色统计卡片
         VerticalLayout roleCard = createStatCard(
-                "角色总数",
+                I18NUtil.get("dashboard.role.total"),
                 String.valueOf(roleService.listRoles().size()),
                 VaadinIcon.SHIELD,
                 "var(--lumo-success-color)"
@@ -74,7 +83,7 @@ public class DashboardView extends VerticalLayout implements AuthenticatedRoute 
 
         // 菜单统计卡片
         VerticalLayout menuCard = createStatCard(
-                "菜单总数",
+                I18NUtil.get("dashboard.menu.total"),
                 String.valueOf(menuService.listMenus().size()),
                 VaadinIcon.MENU,
                 "var(--lumo-warning-color)"
@@ -83,8 +92,8 @@ public class DashboardView extends VerticalLayout implements AuthenticatedRoute 
 
         // 系统状态卡片
         VerticalLayout systemCard = createStatCard(
-                "系统状态",
-                "运行中",
+                I18NUtil.get("dashboard.system.status"),
+                I18NUtil.get("dashboard.system.running"),
                 VaadinIcon.CHECK_CIRCLE,
                 "var(--lumo-success-color)"
         );
@@ -96,7 +105,7 @@ public class DashboardView extends VerticalLayout implements AuthenticatedRoute 
         add(statsLayout);
 
         // 快速操作区域
-        H3 quickActionsTitle = new H3("快速操作");
+        H3 quickActionsTitle = new H3(I18NUtil.get("dashboard.quick.actions"));
         quickActionsTitle.addClassNames(
                 LumoUtility.FontSize.XLARGE,
                 LumoUtility.FontWeight.BOLD,
@@ -168,6 +177,11 @@ public class DashboardView extends VerticalLayout implements AuthenticatedRoute 
         card.setAlignItems(FlexComponent.Alignment.STRETCH);
 
         return card;
+    }
+
+    @Override
+    public String getPageTitle() {
+        return I18NUtil.get("page.dashboard");
     }
 }
 

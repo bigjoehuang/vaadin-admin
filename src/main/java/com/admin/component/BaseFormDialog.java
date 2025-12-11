@@ -1,6 +1,7 @@
 package com.admin.component;
 
 import com.admin.entity.BaseEntity;
+import com.admin.util.I18NUtil;
 import com.admin.util.NotificationUtil;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -42,10 +43,10 @@ public abstract class BaseFormDialog<T extends BaseEntity> extends Dialog {
         try {
             this.entity = entityClass.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-            throw new RuntimeException("无法创建实体实例", e);
+            throw new RuntimeException(I18NUtil.get("error.entity.create.failed"), e);
         }
 
-        setHeaderTitle(isEdit ? "编辑" : "新增");
+        setHeaderTitle(isEdit ? I18NUtil.get("common.edit") : I18NUtil.get("common.add"));
         // 注意：编辑模式下的标题可以在子类中通过 setHeaderTitle 方法重新设置
         setWidth("600px");
         setResizable(true);
@@ -69,13 +70,13 @@ public abstract class BaseFormDialog<T extends BaseEntity> extends Dialog {
         }
 
         // 创建按钮
-        cancelButton = new Button("取消");
+        cancelButton = new Button(I18NUtil.get("common.cancel"));
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         cancelButton.addClickListener(e -> close());
         // 确保取消按钮文字可见
         cancelButton.getElement().getStyle().set("color", "var(--lumo-body-text-color)");
 
-        saveButton = new Button(isEdit ? "更新" : "保存");
+        saveButton = new Button(isEdit ? I18NUtil.get("common.update") : I18NUtil.get("common.save"));
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(e -> save());
         // 主要按钮文字颜色（使用CSS变量，已改为黑色）
@@ -183,7 +184,7 @@ public abstract class BaseFormDialog<T extends BaseEntity> extends Dialog {
             binder.writeBean(entity);
             return true;
         } catch (ValidationException e) {
-            NotificationUtil.showError("请检查表单输入是否正确");
+            NotificationUtil.showError(I18NUtil.get("common.pleaseCheckInput"));
             return false;
         }
     }

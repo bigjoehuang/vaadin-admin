@@ -50,3 +50,4 @@ public class ${entityName}ListView extends VerticalLayout {
     }
 }
 
+

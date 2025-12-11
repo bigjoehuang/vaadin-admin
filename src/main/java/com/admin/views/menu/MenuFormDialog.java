@@ -3,6 +3,7 @@ package com.admin.views.menu;
 import com.admin.component.BaseFormDialog;
 import com.admin.entity.Menu;
 import com.admin.service.MenuService;
+import com.admin.util.I18NUtil;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -46,58 +47,58 @@ public class MenuFormDialog extends BaseFormDialog<Menu> {
         this.refreshCallback = refreshCallback;
         // 设置对话框标题
         if (isEdit) {
-            setHeaderTitle("编辑菜单");
+            setHeaderTitle(I18NUtil.get("menu.edit"));
         } else {
-            setHeaderTitle("新增菜单");
+            setHeaderTitle(I18NUtil.get("menu.new"));
         }
     }
 
     @Override
     protected void buildFormFields() {
-        nameField = new TextField("菜单名称");
+        nameField = new TextField(I18NUtil.get("menu.name"));
         nameField.setRequired(true);
         nameField.setRequiredIndicatorVisible(true);
         nameField.setWidthFull();
-        nameField.setPlaceholder("请输入菜单名称，1-50个字符");
+        nameField.setPlaceholder(I18NUtil.get("menu.placeholder.name.input"));
         nameField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         nameField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        pathField = new TextField("菜单路径");
+        pathField = new TextField(I18NUtil.get("menu.path"));
         pathField.setWidthFull();
-        pathField.setPlaceholder("请输入菜单路径，如：/users");
+        pathField.setPlaceholder(I18NUtil.get("menu.placeholder.path.example"));
         pathField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         pathField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        componentField = new TextField("组件路径");
+        componentField = new TextField(I18NUtil.get("menu.component"));
         componentField.setWidthFull();
-        componentField.setPlaceholder("请输入组件路径，如：views/user/UserListView");
+        componentField.setPlaceholder(I18NUtil.get("menu.placeholder.component.example"));
         componentField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         componentField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        iconField = new TextField("图标");
+        iconField = new TextField(I18NUtil.get("menu.icon"));
         iconField.setWidthFull();
-        iconField.setPlaceholder("请输入图标名称，如：vaadin:user");
+        iconField.setPlaceholder(I18NUtil.get("menu.placeholder.icon.example"));
         iconField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         iconField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
         // 父菜单选择
-        parentMenuComboBox = new ComboBox<>("父菜单");
+        parentMenuComboBox = new ComboBox<>(I18NUtil.get("menu.parent"));
         parentMenuComboBox.setWidthFull();
-        parentMenuComboBox.setPlaceholder("请选择父菜单（可选）");
+        parentMenuComboBox.setPlaceholder(I18NUtil.get("menu.placeholder.parent"));
         parentMenuComboBox.setItemLabelGenerator(menu -> menu.getName() != null ? menu.getName() : "");
         parentMenuComboBox.setClearButtonVisible(true);
         // 加载菜单列表
         loadParentMenuOptions();
 
-        sortField = new IntegerField("排序");
+        sortField = new IntegerField(I18NUtil.get("menu.sort"));
         sortField.setWidthFull();
-        sortField.setPlaceholder("请输入排序值，数字越小越靠前");
+        sortField.setPlaceholder(I18NUtil.get("menu.placeholder.sort"));
         sortField.setValue(0);
         sortField.setMin(0);
         sortField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         sortField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        enabledCheckbox = new Checkbox("是否启用");
+        enabledCheckbox = new Checkbox(I18NUtil.get("menu.status"));
         enabledCheckbox.setValue(true);
 
         formLayout.add(nameField, 2);
@@ -132,7 +133,7 @@ public class MenuFormDialog extends BaseFormDialog<Menu> {
         // 设置null选项的显示文本
         parentMenuComboBox.setItemLabelGenerator(menu -> {
             if (menu == null) {
-                return "无父菜单（根菜单）";
+                return I18NUtil.get("menu.placeholder.parent.none");
             }
             return menu.getName() != null ? menu.getName() : "";
         });
@@ -142,23 +143,23 @@ public class MenuFormDialog extends BaseFormDialog<Menu> {
     protected void configureBinder() {
         // 手动绑定字段
         binder.forField(nameField)
-                .asRequired("菜单名称不能为空")
-                .withValidator(new StringLengthValidator("菜单名称长度必须在1-50个字符之间", 1, 50))
+                .asRequired(I18NUtil.get("menu.validation.name.required"))
+                .withValidator(new StringLengthValidator(I18NUtil.get("menu.validation.name.length"), 1, 50))
                 .bind(Menu::getName, Menu::setName);
 
         binder.forField(pathField)
                 .withValidator(path -> path == null || path.length() <= 200,
-                        "路径长度不能超过200个字符")
+                        I18NUtil.get("menu.validation.path.length"))
                 .bind(Menu::getPath, Menu::setPath);
 
         binder.forField(componentField)
                 .withValidator(component -> component == null || component.length() <= 200,
-                        "组件路径长度不能超过200个字符")
+                        I18NUtil.get("menu.validation.component.length"))
                 .bind(Menu::getComponent, Menu::setComponent);
 
         binder.forField(iconField)
                 .withValidator(icon -> icon == null || icon.length() <= 100,
-                        "图标名称长度不能超过100个字符")
+                        I18NUtil.get("menu.validation.icon.length"))
                 .bind(Menu::getIcon, Menu::setIcon);
 
         binder.forField(parentMenuComboBox)
@@ -179,7 +180,7 @@ public class MenuFormDialog extends BaseFormDialog<Menu> {
 
         binder.forField(sortField)
                 .withValidator(sort -> sort != null && sort >= 0,
-                        "排序值必须大于等于0")
+                        I18NUtil.get("menu.validation.sort.min"))
                 .bind(menu -> menu.getSort() != null ? menu.getSort() : 0,
                         (menu, sort) -> menu.setSort(sort != null ? sort : 0));
 
@@ -217,10 +218,10 @@ public class MenuFormDialog extends BaseFormDialog<Menu> {
         try {
             if (isEdit) {
                 menuService.updateMenu(entity);
-                showSuccessAndClose("更新菜单成功");
+                showSuccessAndClose(I18NUtil.get("menu.update.success"));
             } else {
                 menuService.saveMenu(entity);
-                showSuccessAndClose("保存菜单成功");
+                showSuccessAndClose(I18NUtil.get("menu.save.success"));
             }
             if (refreshCallback != null) {
                 refreshCallback.run();
@@ -230,7 +231,7 @@ public class MenuFormDialog extends BaseFormDialog<Menu> {
             showError(e.getMessage());
         } catch (Exception e) {
             // 其他异常，显示通用错误信息
-            showError("操作失败：" + e.getMessage());
+            showError(I18NUtil.get("error.operation.failed") + ": " + e.getMessage());
             e.printStackTrace();
         }
     }

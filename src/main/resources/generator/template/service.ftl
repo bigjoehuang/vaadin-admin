@@ -37,3 +37,4 @@ public interface ${entityName}Service {
     void delete${entityName}(Long id);
 }
 
+

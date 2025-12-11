@@ -1,12 +1,13 @@
 package com.admin.views;
 
+import com.admin.util.I18NUtil;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,8 +19,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @date 2024-01-01
  */
 @Route("/login")
-@PageTitle("登录")
-public class LoginView extends VerticalLayout implements BeforeEnterObserver {
+public class LoginView extends VerticalLayout implements BeforeEnterObserver, HasDynamicTitle {
+    // #region agent log
+    {
+        try {
+            java.io.FileWriter fw = new java.io.FileWriter("/Users/hjoe/ai-creation/vaadin-admin/.cursor/debug.log", true);
+            fw.write(String.format("{\"id\":\"log_%d_login_init\",\"timestamp\":%d,\"location\":\"LoginView.java:23\",\"message\":\"LoginView initialized\",\"data\":{\"pageTitle\":\"${page.login}\",\"i18nTitle\":\"%s\"},\"sessionId\":\"debug-session\",\"runId\":\"run1\",\"hypothesisId\":\"H1\"}\n", System.currentTimeMillis(), System.currentTimeMillis(), I18NUtil.get("page.login")));
+            fw.close();
+        } catch (Exception e) {}
+    }
+    // #endregion
 
     private final LoginForm login = new LoginForm();
 
@@ -32,7 +41,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         // 设置登录表单的 action 为 Spring Security 的登录处理 URL
         login.setAction("login");
 
-        add(new H1("Vaadin Admin"), login);
+        add(new H1(I18NUtil.get("login.app.name")), login);
     }
 
     @Override
@@ -53,5 +62,10 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                 .containsKey("error")) {
             login.setError(true);
         }
+    }
+
+    @Override
+    public String getPageTitle() {
+        return I18NUtil.get("page.login");
     }
 }

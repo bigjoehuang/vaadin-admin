@@ -15,3 +15,4 @@ public class ${entityName} extends BaseEntity {
 <#-- 这里需要根据数据库表结构生成字段，暂时留空，需要手动补充 -->
 }
 
+

@@ -17,3 +17,4 @@ SELECT userName, password, nickname, email, isEnabled, deleted
 FROM sys_user 
 WHERE userName = 'admin';
 
+

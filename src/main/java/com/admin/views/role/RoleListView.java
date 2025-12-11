@@ -6,6 +6,7 @@ import com.admin.dto.RoleQueryDTO;
 import com.admin.entity.Role;
 import com.admin.service.PermissionService;
 import com.admin.service.RoleService;
+import com.admin.util.I18NUtil;
 import com.admin.util.NotificationUtil;
 import com.admin.util.PageResult;
 import com.admin.views.MainLayout;
@@ -21,7 +22,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 
 import java.util.ArrayList;
@@ -36,8 +37,7 @@ import java.util.stream.Collectors;
  * @date 2024-01-01
  */
 @Route(value = "roles", layout = MainLayout.class)
-@PageTitle("角色管理")
-public class RoleListView extends BaseListView<Role, RoleService> {
+public class RoleListView extends BaseListView<Role, RoleService> implements HasDynamicTitle {
 
     // 搜索和筛选组件
     private TextField nameSearchField;
@@ -45,6 +45,11 @@ public class RoleListView extends BaseListView<Role, RoleService> {
     private ComboBox<String> statusFilter;
     private Button searchButton;
     private Button resetButton;
+
+    // 缓存的 i18n 值（Bug 2 修复）
+    private String i18nAll;
+    private String i18nEnabled;
+    private String i18nDisabled;
 
     // 批量操作组件
     private Button batchDeleteButton;
@@ -69,8 +74,13 @@ public class RoleListView extends BaseListView<Role, RoleService> {
     private final PermissionService permissionService;
 
     public RoleListView(RoleService roleService, PermissionService permissionService) {
-        super(roleService, Role.class, "角色", "添加角色", "role-list-view");
+        super(roleService, Role.class, I18NUtil.get("role.title"), I18NUtil.get("role.add"), "role-list-view");
         this.permissionService = permissionService;
+
+        // 缓存 i18n 值（Bug 2 修复：避免每次搜索时重复调用）
+        i18nAll = I18NUtil.get("common.all");
+        i18nEnabled = I18NUtil.get("role.enabled");
+        i18nDisabled = I18NUtil.get("role.disabled");
         
         // 启用Grid多选模式
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
@@ -99,9 +109,9 @@ public class RoleListView extends BaseListView<Role, RoleService> {
         grid.addColumn(role -> "").setHeader("").setWidth("30px").setFlexGrow(0);
         
         grid.addColumn(Role::getId).setHeader("ID").setWidth("80px").setFlexGrow(0).setSortable(true);
-        grid.addColumn(Role::getName).setHeader("角色名称").setFlexGrow(1);
-        grid.addColumn(Role::getCode).setHeader("角色编码").setFlexGrow(1);
-        grid.addColumn(Role::getDescription).setHeader("描述").setFlexGrow(2);
+        grid.addColumn(Role::getName).setHeader(I18NUtil.get("role.name")).setFlexGrow(1);
+        grid.addColumn(Role::getCode).setHeader(I18NUtil.get("role.code")).setFlexGrow(1);
+        grid.addColumn(Role::getDescription).setHeader(I18NUtil.get("role.description")).setFlexGrow(2);
         
         // 优化状态列显示（使用图标和颜色）
         grid.addComponentColumn(role -> {
@@ -124,7 +134,7 @@ public class RoleListView extends BaseListView<Role, RoleService> {
             }
             
             // 创建文本
-            Span textSpan = new Span(enabled ? "启用" : "禁用");
+            Span textSpan = new Span(enabled ? I18NUtil.get("role.enabled") : I18NUtil.get("role.disabled"));
             textSpan.getStyle().set("font-size", "var(--lumo-font-size-s)");
             
             statusLayout.add(icon, textSpan);
@@ -132,25 +142,25 @@ public class RoleListView extends BaseListView<Role, RoleService> {
             statusLayout.setFlexGrow(1, textSpan);
             
             return statusLayout;
-        }).setHeader("状态").setWidth("100px").setFlexGrow(0);
+        }).setHeader(I18NUtil.get("role.status")).setWidth("100px").setFlexGrow(0);
         
-        grid.addColumn(Role::getCreatedAt).setHeader("创建时间").setWidth("180px").setFlexGrow(0).setSortable(true);
-        grid.addColumn(Role::getUpdatedAt).setHeader("更新时间").setWidth("180px").setFlexGrow(0).setSortable(true);
+        grid.addColumn(Role::getCreatedAt).setHeader(I18NUtil.get("role.createdAt")).setWidth("180px").setFlexGrow(0).setSortable(true);
+        grid.addColumn(Role::getUpdatedAt).setHeader(I18NUtil.get("role.updatedAt")).setWidth("180px").setFlexGrow(0).setSortable(true);
         
         // 添加操作列
         grid.addComponentColumn(role -> {
             HorizontalLayout actionLayout = new HorizontalLayout();
             actionLayout.setSpacing(true);
 
-            Button editButton = new Button("编辑", new Icon(VaadinIcon.EDIT));
+            Button editButton = new Button(I18NUtil.get("common.edit"), new Icon(VaadinIcon.EDIT));
             editButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
             editButton.addClickListener(e -> editEntity(role));
 
-            Button deleteButton = new Button("删除", new Icon(VaadinIcon.TRASH));
+            Button deleteButton = new Button(I18NUtil.get("common.delete"), new Icon(VaadinIcon.TRASH));
             deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
             deleteButton.addClickListener(e -> deleteEntity(role));
 
-            Button assignPermissionButton = new Button("分配权限", new Icon(VaadinIcon.KEY));
+            Button assignPermissionButton = new Button(I18NUtil.get("role.assign.permission"), new Icon(VaadinIcon.KEY));
             assignPermissionButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_SUCCESS);
             assignPermissionButton.addClickListener(e -> {
                 RolePermissionAssignDialog dialog = new RolePermissionAssignDialog(
@@ -164,7 +174,7 @@ public class RoleListView extends BaseListView<Role, RoleService> {
 
             actionLayout.add(editButton, deleteButton, assignPermissionButton);
             return actionLayout;
-        }).setHeader("操作").setWidth("280px").setFlexGrow(0);
+        }).setHeader(I18NUtil.get("role.operation")).setWidth("280px").setFlexGrow(0);
     }
 
     @Override
@@ -194,11 +204,11 @@ public class RoleListView extends BaseListView<Role, RoleService> {
      * 构建工具栏
      */
     private HorizontalLayout buildToolbar() {
-        Button addButton = new Button("添加角色", new Icon(VaadinIcon.PLUS));
+        Button addButton = new Button(I18NUtil.get("role.add"), new Icon(VaadinIcon.PLUS));
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addButton.addClickListener(e -> addEntity());
 
-        Button refreshButton = new Button("刷新", new Icon(VaadinIcon.REFRESH));
+        Button refreshButton = new Button(I18NUtil.get("common.refresh"), new Icon(VaadinIcon.REFRESH));
         refreshButton.addClickListener(e -> performSearch());
 
         HorizontalLayout toolbar = new HorizontalLayout(addButton, refreshButton);
@@ -213,34 +223,34 @@ public class RoleListView extends BaseListView<Role, RoleService> {
      * 构建搜索栏
      */
     private HorizontalLayout buildSearchBar() {
-        nameSearchField = new TextField("角色名称");
-        nameSearchField.setPlaceholder("请输入角色名称");
+        nameSearchField = new TextField(I18NUtil.get("role.name"));
+        nameSearchField.setPlaceholder(I18NUtil.get("role.placeholder.name"));
         nameSearchField.setWidth("200px");
         nameSearchField.setClearButtonVisible(true);
         // 通过Java代码设置label颜色，确保在获得焦点时可见
         nameSearchField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         nameSearchField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        codeSearchField = new TextField("角色编码");
-        codeSearchField.setPlaceholder("请输入角色编码");
+        codeSearchField = new TextField(I18NUtil.get("role.code"));
+        codeSearchField.setPlaceholder(I18NUtil.get("role.placeholder.code"));
         codeSearchField.setWidth("200px");
         codeSearchField.setClearButtonVisible(true);
         // 通过Java代码设置label颜色
         codeSearchField.getElement().getStyle().set("--lumo-text-field-label-color", "var(--lumo-body-text-color)");
         codeSearchField.getElement().getStyle().set("--vaadin-input-field-label-color", "var(--lumo-body-text-color)");
 
-        statusFilter = new ComboBox<>("状态");
-        statusFilter.setItems("全部", "启用", "禁用");
-        statusFilter.setValue("全部");
+        statusFilter = new ComboBox<>(I18NUtil.get("role.status"));
+        statusFilter.setItems(i18nAll, i18nEnabled, i18nDisabled);
+        statusFilter.setValue(i18nAll);
         statusFilter.setWidth("120px");
         statusFilter.setClearButtonVisible(true); // 启用清除按钮
-        statusFilter.setPlaceholder("选择状态"); // 设置占位符
+        statusFilter.setPlaceholder(I18NUtil.get("role.placeholder.status")); // 设置占位符
 
-        searchButton = new Button("搜索", new Icon(VaadinIcon.SEARCH));
+        searchButton = new Button(I18NUtil.get("common.search"), new Icon(VaadinIcon.SEARCH));
         searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         searchButton.addClickListener(e -> performSearch());
 
-        resetButton = new Button("重置", new Icon(VaadinIcon.REFRESH));
+        resetButton = new Button(I18NUtil.get("common.reset"), new Icon(VaadinIcon.REFRESH));
         resetButton.addClickListener(e -> resetSearch());
 
         HorizontalLayout searchBar = new HorizontalLayout(
@@ -309,15 +319,15 @@ public class RoleListView extends BaseListView<Role, RoleService> {
      * 构建批量操作栏
      */
     private HorizontalLayout buildBatchOperationBar() {
-        batchDeleteButton = new Button("批量删除", new Icon(VaadinIcon.TRASH));
+        batchDeleteButton = new Button(I18NUtil.get("role.batch.delete"), new Icon(VaadinIcon.TRASH));
         batchDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
         batchDeleteButton.addClickListener(e -> performBatchDelete());
 
-        batchEnableButton = new Button("批量启用", new Icon(VaadinIcon.CHECK));
+        batchEnableButton = new Button(I18NUtil.get("role.batch.enable"), new Icon(VaadinIcon.CHECK));
         batchEnableButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         batchEnableButton.addClickListener(e -> performBatchUpdateStatus(true));
 
-        batchDisableButton = new Button("批量禁用", new Icon(VaadinIcon.CLOSE));
+        batchDisableButton = new Button(I18NUtil.get("role.batch.disable"), new Icon(VaadinIcon.CLOSE));
         batchDisableButton.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
         batchDisableButton.addClickListener(e -> performBatchUpdateStatus(false));
 
@@ -334,14 +344,14 @@ public class RoleListView extends BaseListView<Role, RoleService> {
      * 构建分页组件
      */
     private HorizontalLayout buildPagination() {
-        firstPageButton = new Button("首页", new Icon(VaadinIcon.ANGLE_DOUBLE_LEFT));
+        firstPageButton = new Button(I18NUtil.get("common.firstPage"), new Icon(VaadinIcon.ANGLE_DOUBLE_LEFT));
         firstPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         firstPageButton.addClickListener(e -> {
             currentPageRequest.setPageNum(1);
             performSearch();
         });
 
-        prevPageButton = new Button("上一页", new Icon(VaadinIcon.ANGLE_LEFT));
+        prevPageButton = new Button(I18NUtil.get("common.prevPage"), new Icon(VaadinIcon.ANGLE_LEFT));
         prevPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         prevPageButton.addClickListener(e -> {
             if (currentPageRequest.getPageNum() > 1) {
@@ -350,7 +360,7 @@ public class RoleListView extends BaseListView<Role, RoleService> {
             }
         });
 
-        nextPageButton = new Button("下一页", new Icon(VaadinIcon.ANGLE_RIGHT));
+        nextPageButton = new Button(I18NUtil.get("common.nextPage"), new Icon(VaadinIcon.ANGLE_RIGHT));
         nextPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         nextPageButton.addClickListener(e -> {
             if (currentPageResult != null && currentPageResult.getData() != null) {
@@ -363,7 +373,7 @@ public class RoleListView extends BaseListView<Role, RoleService> {
             }
         });
 
-        lastPageButton = new Button("末页", new Icon(VaadinIcon.ANGLE_DOUBLE_RIGHT));
+        lastPageButton = new Button(I18NUtil.get("common.lastPage"), new Icon(VaadinIcon.ANGLE_DOUBLE_RIGHT));
         lastPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         lastPageButton.addClickListener(e -> {
             if (currentPageResult != null && currentPageResult.getData() != null) {
@@ -427,7 +437,7 @@ public class RoleListView extends BaseListView<Role, RoleService> {
             } else {
                 grid.setItems(new ArrayList<>());
                 if (pageInfo != null) {
-                    pageInfo.setText("暂无数据");
+                    pageInfo.setText(I18NUtil.get("common.noData"));
                     updatePaginationButtons(false, false);
                 }
             }
@@ -438,7 +448,7 @@ public class RoleListView extends BaseListView<Role, RoleService> {
             }
             
         } catch (Exception e) {
-            NotificationUtil.showError("查询失败：" + e.getMessage());
+            NotificationUtil.showError(I18NUtil.get("role.query.failed", e.getMessage()));
             e.printStackTrace();
         }
     }
@@ -466,9 +476,17 @@ public class RoleListView extends BaseListView<Role, RoleService> {
         
         if (statusFilter != null) {
             String status = statusFilter.getValue();
+            // #region agent log
+            try {
+                java.io.FileWriter fw = new java.io.FileWriter("/Users/hjoe/ai-creation/vaadin-admin/.cursor/debug.log", true);
+                fw.write(String.format("{\"id\":\"log_%d_role_build\",\"timestamp\":%d,\"location\":\"RoleListView.java:468\",\"message\":\"buildQuery called\",\"data\":{\"status\":\"%s\",\"i18nAll\":\"%s\",\"i18nEnabled\":\"%s\",\"i18nDisabled\":\"%s\"},\"sessionId\":\"debug-session\",\"runId\":\"post-fix\",\"hypothesisId\":\"H4\"}\n", System.currentTimeMillis(), System.currentTimeMillis(), status != null ? status : "null", i18nAll, i18nEnabled, i18nDisabled));
+                fw.close();
+            } catch (Exception e) {}
+            // #endregion
             // 如果清除选择（值为null或空），或者选择"全部"，则不设置状态筛选条件
-            if (status != null && !status.trim().isEmpty() && !"全部".equals(status)) {
-                currentQuery.setIsEnabled("启用".equals(status));
+            // Bug 2 修复：使用缓存的 i18n 值，而不是每次调用 I18NUtil.get()
+            if (status != null && !status.trim().isEmpty() && !i18nAll.equals(status)) {
+                currentQuery.setIsEnabled(i18nEnabled.equals(status));
             }
         }
     }
@@ -484,7 +502,7 @@ public class RoleListView extends BaseListView<Role, RoleService> {
             codeSearchField.clear();
         }
         if (statusFilter != null) {
-            statusFilter.setValue("全部");
+            statusFilter.setValue(i18nAll);
         }
         currentPageRequest.setPageNum(1);
         performSearch();
@@ -515,7 +533,7 @@ public class RoleListView extends BaseListView<Role, RoleService> {
     private void performBatchDelete() {
         Set<Role> selected = grid.getSelectedItems();
         if (selected.isEmpty()) {
-            NotificationUtil.showError("请至少选择一个角色");
+            NotificationUtil.showError(I18NUtil.get("common.selectAtLeastOne") + I18NUtil.get("role.title"));
             return;
         }
 
@@ -523,22 +541,22 @@ public class RoleListView extends BaseListView<Role, RoleService> {
         String names = selected.stream().map(Role::getName).collect(Collectors.joining("、"));
 
         ConfirmDialog confirmDialog = new ConfirmDialog();
-        confirmDialog.setHeader("确认批量删除");
-        confirmDialog.setText("确定要删除以下 " + ids.size() + " 个角色吗？\n" + names + "\n此操作不可恢复。");
-        confirmDialog.setConfirmText("删除");
+        confirmDialog.setHeader(I18NUtil.get("confirm.batch.delete.title"));
+        confirmDialog.setText(I18NUtil.get("role.batch.delete.confirm", ids.size(), names));
+        confirmDialog.setConfirmText(I18NUtil.get("common.delete"));
         confirmDialog.setConfirmButtonTheme("error primary");
-        confirmDialog.setCancelText("取消");
+        confirmDialog.setCancelText(I18NUtil.get("common.cancel"));
         confirmDialog.setCancelButtonTheme("tertiary");
         confirmDialog.setCancelable(true);
 
         confirmDialog.addConfirmListener(e -> {
             try {
                 service.batchDeleteRoles(ids);
-                NotificationUtil.showSuccess("批量删除成功，共删除 " + ids.size() + " 个角色");
+                NotificationUtil.showSuccess(I18NUtil.get("role.batch.delete.success", ids.size()));
                 grid.deselectAll();
                 performSearch();
             } catch (Exception ex) {
-                NotificationUtil.showError("批量删除失败：" + ex.getMessage());
+                NotificationUtil.showError(I18NUtil.get("role.batch.delete.failed", ex.getMessage()));
             }
         });
 
@@ -555,30 +573,32 @@ public class RoleListView extends BaseListView<Role, RoleService> {
     private void performBatchUpdateStatus(boolean isEnabled) {
         Set<Role> selected = grid.getSelectedItems();
         if (selected.isEmpty()) {
-            NotificationUtil.showError("请至少选择一个角色");
+            NotificationUtil.showError(I18NUtil.get("common.selectAtLeastOne") + I18NUtil.get("role.title"));
             return;
         }
 
         List<Long> ids = selected.stream().map(Role::getId).collect(Collectors.toList());
-        String action = isEnabled ? "启用" : "禁用";
+        String actionKey = isEnabled ? "role.batch.enable" : "role.batch.disable";
+        String action = isEnabled ? I18NUtil.get("role.enabled") : I18NUtil.get("role.disabled");
 
         ConfirmDialog confirmDialog = new ConfirmDialog();
-        confirmDialog.setHeader("确认批量" + action);
-        confirmDialog.setText("确定要" + action + "以下 " + ids.size() + " 个角色吗？");
+        String confirmKey = isEnabled ? "confirm.batch.enable" : "confirm.batch.disable";
+        confirmDialog.setHeader(I18NUtil.get(confirmKey + ".title"));
+        confirmDialog.setText(I18NUtil.get(confirmKey + ".text", ids.size(), I18NUtil.get("role.title")));
         confirmDialog.setConfirmText(action);
         confirmDialog.setConfirmButtonTheme("primary");
-        confirmDialog.setCancelText("取消");
+        confirmDialog.setCancelText(I18NUtil.get("common.cancel"));
         confirmDialog.setCancelButtonTheme("tertiary");
         confirmDialog.setCancelable(true);
 
         confirmDialog.addConfirmListener(e -> {
             try {
                 service.batchUpdateRoleStatus(ids, isEnabled);
-                NotificationUtil.showSuccess("批量" + action + "成功，共" + action + " " + ids.size() + " 个角色");
+                NotificationUtil.showSuccess(I18NUtil.get(actionKey + ".success", ids.size()));
                 grid.deselectAll();
                 performSearch();
             } catch (Exception ex) {
-                NotificationUtil.showError("批量" + action + "失败：" + ex.getMessage());
+                NotificationUtil.showError(I18NUtil.get(actionKey + ".failed", ex.getMessage()));
             }
         });
 
@@ -599,7 +619,7 @@ public class RoleListView extends BaseListView<Role, RoleService> {
             int pageSize = currentPageResult.getData().getPageSize();
             int totalPages = (int) Math.ceil((double) total / pageSize);
             
-            pageInfo.setText(String.format("第 %d/%d 页，共 %d 条记录", pageNum, totalPages > 0 ? totalPages : 1, total));
+            pageInfo.setText(I18NUtil.get("pagination.info", pageNum, totalPages > 0 ? totalPages : 1, total));
             
             // 更新按钮状态
             updatePaginationButtons(pageNum > 1, pageNum < totalPages);
@@ -620,5 +640,10 @@ public class RoleListView extends BaseListView<Role, RoleService> {
     protected void updateList() {
         // 重写此方法，使用分页查询
         performSearch();
+    }
+
+    @Override
+    public String getPageTitle() {
+        return I18NUtil.get("page.role.management");
     }
 }
