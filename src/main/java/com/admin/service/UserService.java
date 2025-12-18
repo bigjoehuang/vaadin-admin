@@ -38,6 +38,27 @@ public interface UserService extends BaseService<User> {
     List<User> listUsersByCondition(UserQueryDTO query);
 
     /**
+     * 查询所有用户
+     *
+     * @return 用户列表
+     */
+    List<User> listUsers();
+
+    /**
+     * 新增用户
+     *
+     * @param user 用户实体
+     */
+    void saveUser(User user);
+
+    /**
+     * 更新用户
+     *
+     * @param user 用户实体
+     */
+    void updateUser(User user);
+
+    /**
      * 删除用户
      *
      * @param id 用户ID

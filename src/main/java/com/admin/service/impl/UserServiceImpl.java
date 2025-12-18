@@ -82,6 +82,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> listUsers() {
+        return listAll();
+    }
+
+    @Override
+    public void saveUser(User user) {
+        save(user);
+    }
+
+    @Override
+    public void updateUser(User user) {
+        updateById(user);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void save(User user) {
         // 检查用户名是否已存在

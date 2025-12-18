@@ -59,13 +59,13 @@ public class SecurityConfig {
                 .logoutSuccessUrl("/login")
                 .permitAll()
             )
-            // 配置会话管理
+            // 配置会话管理（使用新的Lambda风格，避免使用已废弃的and()）
             .sessionManagement(session -> session
-                // 设置会话超时时间为30分钟
+                // 会话固定攻击防护：认证后总是创建新会话
+                .sessionFixation(sessionFixation -> sessionFixation.newSession())
+                // 并发会话控制：同一账号只允许一个会话，过期后跳转到登录页
                 .maximumSessions(1)
                 .expiredUrl("/login?expired=true")
-                .and()
-                .sessionFixation().newSession()
             )
             // 添加安全头
             .headers(headers -> headers

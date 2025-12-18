@@ -8,9 +8,8 @@ import com.admin.util.I18NUtil;
 
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.Image;
-
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -23,8 +22,10 @@ import com.vaadin.flow.component.Unit;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.Optional;
 
 /**
@@ -160,20 +161,20 @@ public class UserFormDialog extends BaseFormDialog<User> {
 
         // 水平布局，包含头像预览和上传组件
         HorizontalLayout avatarLayout = new HorizontalLayout();
-        avatarLayout.setAlignItems(Alignment.CENTER);
+        avatarLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         avatarLayout.setSpacing(true);
         avatarLayout.setWidthFull();
         
         // 头像预览区域
         HorizontalLayout previewLayout = new HorizontalLayout();
-        previewLayout.setAlignItems(Alignment.CENTER);
-        previewLayout.setJustifyContentMode(JustifyContentMode.CENTER);
+        previewLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        previewLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         previewLayout.setWidth("150px");
         previewLayout.add(avatarImage);
         
         // 上传组件区域
         HorizontalLayout uploadLayout = new HorizontalLayout();
-        uploadLayout.setAlignItems(Alignment.CENTER);
+        uploadLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         uploadLayout.setFlexGrow(1, uploadLayout);
         uploadLayout.add(avatarUpload);
         
@@ -280,21 +281,49 @@ public class UserFormDialog extends BaseFormDialog<User> {
         try {
             // 处理头像上传
             if (avatarChanged && avatarBytes != null) {
-                // 创建MultipartFile对象
-                MultipartFile multipartFile = new org.springframework.web.multipart.commons.CommonsMultipartFile(
-                        new org.apache.commons.fileupload.disk.DiskFileItem(
-                                "avatar",
-                                "image/*",
-                                false,
-                                "avatar.jpg",
-                                avatarBytes.length,
-                                null) {
-                            @Override
-                            public InputStream getInputStream() throws IOException {
-                                return new ByteArrayInputStream(avatarBytes);
-                            }
-                        });
-                
+                // 使用自定义 MultipartFile 实现，避免依赖 commons-fileupload
+                MultipartFile multipartFile = new MultipartFile() {
+                    @Override
+                    public String getName() {
+                        return "avatar";
+                    }
+
+                    @Override
+                    public String getOriginalFilename() {
+                        return "avatar.jpg";
+                    }
+
+                    @Override
+                    public String getContentType() {
+                        return "image/*";
+                    }
+
+                    @Override
+                    public boolean isEmpty() {
+                        return avatarBytes.length == 0;
+                    }
+
+                    @Override
+                    public long getSize() {
+                        return avatarBytes.length;
+                    }
+
+                    @Override
+                    public byte[] getBytes() {
+                        return avatarBytes;
+                    }
+
+                    @Override
+                    public InputStream getInputStream() {
+                        return new ByteArrayInputStream(avatarBytes);
+                    }
+
+                    @Override
+                    public void transferTo(File dest) throws IOException {
+                        Files.write(dest.toPath(), avatarBytes);
+                    }
+                };
+
                 // 上传头像，获取文件路径
                 String avatarPath = fileService.uploadFile(multipartFile);
                 // 设置头像路径
