@@ -15,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import jakarta.annotation.security.PermitAll;
 
 /**
  * 仪表盘视图
@@ -23,6 +24,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
  * @date 2024-01-01
  */
 @Route(value = "", layout = MainLayout.class)
+@PermitAll
 public class DashboardView extends VerticalLayout implements AuthenticatedRoute, HasDynamicTitle {
     // #region agent log
     {

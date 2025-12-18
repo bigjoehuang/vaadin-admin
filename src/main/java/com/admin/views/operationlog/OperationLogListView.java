@@ -4,6 +4,7 @@ import com.admin.entity.OperationLog;
 import com.admin.service.OperationLogService;
 import com.admin.util.I18NUtil;
 import com.admin.views.MainLayout;
+import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -20,6 +21,7 @@ import java.util.List;
  * @date 2024-01-01
  */
 @Route(value = "operation-logs", layout = MainLayout.class)
+@PermitAll
 public class OperationLogListView extends VerticalLayout implements HasDynamicTitle {
 
     private final OperationLogService operationLogService;

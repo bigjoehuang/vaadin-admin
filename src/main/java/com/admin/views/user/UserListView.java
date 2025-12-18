@@ -16,6 +16,7 @@ import com.admin.util.PageResult;
 import com.admin.util.PaginationUtil;
 import com.admin.views.MainLayout;
 import com.admin.views.base.BaseListView;
+import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
  * @date 2024-01-01
  */
 @Route(value = "users", layout = MainLayout.class)
+@PermitAll
 public class UserListView extends BaseListView<User, UserService> implements HasDynamicTitle {
 
     // 搜索和筛选组件

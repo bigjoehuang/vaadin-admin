@@ -1,14 +1,13 @@
 package com.admin.config;
 
+import com.admin.views.LoginView;
+import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 /**
  * Spring Security 配置
@@ -18,62 +17,25 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
  */
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
+public class SecurityConfig extends VaadinWebSecurity {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .authorizeHttpRequests(auth -> auth
-                // 允许访问登录页面和静态资源
-                .requestMatchers(
-                    "/",
-                    "/login",
-                    "/VAADIN/**",
-                    "/icons/**",
-                    "/images/**",
-                    "/themes/**",
-                    "/frontend/**",
-                    "/sw.js",
-                    "/sw-runtime-resources-precache.js",
-                    "/manifest.webmanifest"
-                ).permitAll()
-                // 其他请求需要认证
-                .anyRequest().authenticated()
-            )
-            // 启用CSRF防护，使用CookieCsrfTokenRepository以支持Vaadin和REST API
-            .csrf(csrf -> csrf
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                // 忽略静态资源和API的CSRF检查
-                .ignoringRequestMatchers("/VAADIN/**", "/api/**", "/icons/**", "/images/**", "/themes/**", "/frontend/**", "/sw.js", "/sw-runtime-resources-precache.js", "/manifest.webmanifest")
-            )
-            // 配置表单登录
-            .formLogin(form -> form
-                .loginPage("/login")
-                .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/", true)
-                .failureUrl("/login?error")
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login")
-                .permitAll()
-            )
-            // 配置会话管理（使用新的Lambda风格，避免使用已废弃的and()）
-            .sessionManagement(session -> session
-                // 会话固定攻击防护：认证后总是创建新会话
-                .sessionFixation(sessionFixation -> sessionFixation.newSession())
-                // 并发会话控制：同一账号只允许一个会话，过期后跳转到登录页
-                .maximumSessions(1)
-                .expiredUrl("/login?expired=true")
-            )
-            // 添加安全头
-            .headers(headers -> headers
-                .contentSecurityPolicy(csp -> csp
-                    .policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'self';")
-                )
-            );
-        return http.build();
+    /**
+     * Spring Security 与 Vaadin 集成配置
+     *
+     * <p>使用 Vaadin 提供的 {@link VaadinWebSecurity}，确保 Vaadin 内部端点和
+     * Spring Security 协同工作，避免客户端期望 JSON 时收到 HTML 导致的
+     * "Invalid JSON response from server" 错误。
+     */
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        // 如果有额外的开放端点（例如 REST API），在这里配置：
+        // http.authorizeHttpRequests(auth -> auth.requestMatchers("/api/**").permitAll());
+
+        // 让 Vaadin 配置自身需要的安全规则（包括 CSRF、静态资源等）
+        super.configure(http);
+
+        // 使用 Vaadin 登录视图作为 Spring Security 的登录页面
+        setLoginView(http, LoginView.class);
     }
 
     @Bean

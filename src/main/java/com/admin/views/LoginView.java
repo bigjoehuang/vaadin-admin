@@ -2,8 +2,6 @@ package com.admin.views;
 
 import com.admin.util.I18NUtil;
 import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -13,6 +11,7 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -25,7 +24,8 @@ import java.util.Map;
  * @author Admin
  * @date 2024-01-01
  */
-@Route("/login")
+@Route("login")
+@AnonymousAllowed
 public class LoginView extends VerticalLayout implements BeforeEnterObserver, HasDynamicTitle {
     // #region agent log
     {

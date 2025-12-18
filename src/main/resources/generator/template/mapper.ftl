@@ -47,3 +47,4 @@ public interface ${entityName}Mapper {
 
 
 
+

@@ -1,6 +1,5 @@
 package com.admin.views;
 
-import com.admin.service.UserService;
 import com.admin.util.I18NUtil;
 import com.admin.util.NotificationUtil;
 import com.vaadin.flow.component.button.Button;
@@ -17,7 +16,7 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
-import lombok.RequiredArgsConstructor;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -27,19 +26,16 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2024-01-01
  */
 @Slf4j
-@Route("/reset-password")
-
+@Route("reset-password")
+@AnonymousAllowed
 public class PasswordResetView extends VerticalLayout implements BeforeEnterObserver, HasDynamicTitle {
 
-    private final UserService userService;
-    
     private TextField userNameField;
     private EmailField emailField;
     private Button resetButton;
     private Button backButton;
 
-    public PasswordResetView(UserService userService) {
-        this.userService = userService;
+    public PasswordResetView() {
         addClassName("reset-password-view");
         setSizeFull();
         setAlignItems(FlexComponent.Alignment.CENTER);
