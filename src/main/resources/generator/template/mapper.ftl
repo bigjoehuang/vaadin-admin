@@ -48,3 +48,4 @@ public interface ${entityName}Mapper {
 
 
 
+

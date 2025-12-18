@@ -4,8 +4,11 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasText;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.RouterLink;
 
 /**
@@ -72,6 +75,12 @@ public class UIRefreshUtil {
             refreshTabText(tab);
         } else if (component instanceof RouterLink routerLink) {
             refreshRouterLinkText(routerLink);
+        } else if (component instanceof TextField textField) {
+            refreshTextField(textField);
+        } else if (component instanceof ComboBox<?> comboBox) {
+            refreshComboBox(comboBox);
+        } else if (component instanceof Grid<?> grid) {
+            refreshGrid(grid);
         } else if (component instanceof HasText hasTextComponent) {
             // 对于其他实现了 HasText 接口的组件，触发重新渲染
             triggerComponentUpdate(component);
@@ -90,22 +99,69 @@ public class UIRefreshUtil {
      * @param button Button 组件
      */
     private static void refreshButtonText(Button button) {
-        // Button 的文本通常是在创建时设置的，切换语言后需要重新设置
-        // 但由于我们无法获取原始的 I18N key，所以只能触发重新渲染
-        triggerComponentUpdate(button);
+        // 获取当前按钮文本
+        String buttonText = button.getText();
+        
+        // 尝试重新国际化按钮文本
+        if (buttonText != null && !buttonText.isEmpty()) {
+            // 对于常见按钮，直接重新设置国际化文本
+            // 注意：这是一个简化的实现，实际项目中可能需要更复杂的逻辑
+            if ("Add User".equals(buttonText) || "添加用户".equals(buttonText)) {
+                button.setText(I18NUtil.get("user.add"));
+            } else if ("Refresh".equals(buttonText) || "刷新".equals(buttonText)) {
+                button.setText(I18NUtil.get("common.refresh"));
+            } else if ("Search".equals(buttonText) || "搜索".equals(buttonText)) {
+                button.setText(I18NUtil.get("common.search"));
+            } else if ("Reset".equals(buttonText) || "重置".equals(buttonText)) {
+                button.setText(I18NUtil.get("common.reset"));
+            } else if ("Edit".equals(buttonText) || "编辑".equals(buttonText)) {
+                button.setText(I18NUtil.get("common.edit"));
+            } else if ("Delete".equals(buttonText) || "删除".equals(buttonText)) {
+                button.setText(I18NUtil.get("common.delete"));
+            } else if ("Assign Role".equals(buttonText) || "分配角色".equals(buttonText)) {
+                button.setText(I18NUtil.get("user.assign.role"));
+            } else if ("First".equals(buttonText) || "首页".equals(buttonText)) {
+                button.setText(I18NUtil.get("common.firstPage"));
+            } else if ("Previous".equals(buttonText) || "上一页".equals(buttonText)) {
+                button.setText(I18NUtil.get("common.prevPage"));
+            } else if ("Next".equals(buttonText) || "下一页".equals(buttonText)) {
+                button.setText(I18NUtil.get("common.nextPage"));
+            } else if ("Last".equals(buttonText) || "末页".equals(buttonText)) {
+                button.setText(I18NUtil.get("common.lastPage"));
+            }
+        }
         
         // 更新 aria-label 属性
         String ariaLabel = button.getElement().getAttribute("aria-label");
         if (ariaLabel != null && !ariaLabel.isEmpty()) {
             // 尝试重新获取 aria-label 的国际化文本
-            // 注意：这只在 aria-label 直接使用 I18NUtil.get() 设置时有效
-            // 如果 aria-label 包含其他文本，这种方式可能会失效
+            // 支持更多前缀
             if (ariaLabel.startsWith("main.layout.") || 
                 ariaLabel.startsWith("locale.") ||
-                ariaLabel.startsWith("status.")) {
+                ariaLabel.startsWith("status.") ||
+                ariaLabel.startsWith("common.") ||
+                ariaLabel.startsWith("user.") ||
+                ariaLabel.startsWith("button.")) {
                 button.setAriaLabel(I18NUtil.get(ariaLabel));
             }
         }
+        
+        // 更新 tooltip 属性
+        String tooltip = button.getElement().getAttribute("title");
+        if (tooltip != null && !tooltip.isEmpty()) {
+            // 尝试重新获取 tooltip 的国际化文本
+            if (tooltip.startsWith("main.layout.") || 
+                tooltip.startsWith("locale.") ||
+                tooltip.startsWith("status.") ||
+                tooltip.startsWith("common.") ||
+                tooltip.startsWith("user.") ||
+                tooltip.startsWith("tooltip.")) {
+                button.setTooltipText(I18NUtil.get(tooltip));
+            }
+        }
+        
+        // 触发组件重新渲染
+        triggerComponentUpdate(button);
     }
 
     /**
@@ -239,6 +295,87 @@ public class UIRefreshUtil {
 
         // 触发组件的 property change 事件，强制重新渲染
         component.getElement().executeJs("this.requestUpdate();");
+    }
+
+    /**
+     * 刷新 TextField 组件
+     * @param textField TextField 组件
+     */
+    private static void refreshTextField(TextField textField) {
+        // 刷新 placeholder
+        String placeholder = textField.getElement().getAttribute("placeholder");
+        if (placeholder != null && !placeholder.isEmpty()) {
+            if (placeholder.startsWith("input.") || 
+                placeholder.startsWith("search.") ||
+                placeholder.startsWith("filter.") ||
+                placeholder.startsWith("field.")) {
+                textField.setPlaceholder(I18NUtil.get(placeholder));
+            }
+        }
+        // 刷新 label
+        String label = textField.getElement().getAttribute("label");
+        if (label != null && !label.isEmpty()) {
+            if (label.startsWith("input.") || 
+                label.startsWith("field.")) {
+                textField.setLabel(I18NUtil.get(label));
+            }
+        }
+        triggerComponentUpdate(textField);
+    }
+
+    /**
+     * 刷新 ComboBox 组件
+     * @param comboBox ComboBox 组件
+     */
+    private static void refreshComboBox(ComboBox<?> comboBox) {
+        // 刷新 placeholder
+        String placeholder = comboBox.getElement().getAttribute("placeholder");
+        if (placeholder != null && !placeholder.isEmpty()) {
+            if (placeholder.startsWith("input.") || 
+                placeholder.startsWith("search.") ||
+                placeholder.startsWith("filter.") ||
+                placeholder.startsWith("field.")) {
+                comboBox.setPlaceholder(I18NUtil.get(placeholder));
+            }
+        }
+        // 刷新 label
+        String label = comboBox.getElement().getAttribute("label");
+        if (label != null && !label.isEmpty()) {
+            if (label.startsWith("input.") || 
+                label.startsWith("field.")) {
+                comboBox.setLabel(I18NUtil.get(label));
+            }
+        }
+        triggerComponentUpdate(comboBox);
+    }
+
+    /**
+     * 刷新 Grid 组件
+     * @param grid Grid 组件
+     */
+    private static void refreshGrid(Grid<?> grid) {
+        // 通用刷新逻辑：
+        // 1. 优先使用列的 key 作为国际化 key；
+        // 2. 如果 header 文本本身看起来像国际化 key（包含 '.'），则直接用它作为 key。
+        grid.getColumns().forEach(column -> {
+            String i18nKey = null;
+
+            // 优先使用列 key
+            if (column.getKey() != null && !column.getKey().isEmpty()) {
+                i18nKey = column.getKey();
+            } else {
+                // 兼容使用纯文本 header 的情况：如果文本像 'user.userName' 这种带命名空间的 key，则直接使用
+                String headerText = column.getHeaderText();
+                if (headerText != null && !headerText.isEmpty() && headerText.contains(".")) {
+                    i18nKey = headerText;
+                }
+            }
+
+            if (i18nKey != null) {
+                column.setHeader(I18NUtil.get(i18nKey));
+            }
+        });
+        triggerComponentUpdate(grid);
     }
 
     /**

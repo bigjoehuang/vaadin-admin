@@ -72,7 +72,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
 
     // 当前分页数据
     private PageResult<Menu> currentPageResult;
-    
+
     // DataProvider
     private DataProvider<Menu, Void> dataProvider;
 
@@ -113,7 +113,8 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
         grid.addColumn(Menu::getPath).setHeader(I18NUtil.get("menu.path")).setFlexGrow(1);
         grid.addColumn(Menu::getComponent).setHeader(I18NUtil.get("menu.component")).setFlexGrow(1);
         grid.addColumn(Menu::getIcon).setHeader(I18NUtil.get("menu.icon")).setWidth("120px").setFlexGrow(0);
-        grid.addColumn(Menu::getSort).setHeader(I18NUtil.get("menu.sort")).setWidth("80px").setFlexGrow(0).setSortable(true);
+        grid.addColumn(Menu::getSort).setHeader(I18NUtil.get("menu.sort")).setWidth("80px").setFlexGrow(0)
+                .setSortable(true);
 
         // 优化状态列显示（使用图标和颜色）
         grid.addComponentColumn(menu -> {
@@ -146,8 +147,10 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
             return statusLayout;
         }).setHeader(I18NUtil.get("menu.status")).setWidth("100px").setFlexGrow(0);
 
-        grid.addColumn(Menu::getCreatedAt).setHeader(I18NUtil.get("menu.createdAt")).setWidth("180px").setFlexGrow(0).setSortable(true);
-        grid.addColumn(Menu::getUpdatedAt).setHeader(I18NUtil.get("menu.updatedAt")).setWidth("180px").setFlexGrow(0).setSortable(true);
+        grid.addColumn(Menu::getCreatedAt).setHeader(I18NUtil.get("menu.createdAt")).setWidth("180px").setFlexGrow(0)
+                .setSortable(true);
+        grid.addColumn(Menu::getUpdatedAt).setHeader(I18NUtil.get("menu.updatedAt")).setWidth("180px").setFlexGrow(0)
+                .setSortable(true);
 
         // 添加操作列
         grid.addComponentColumn(menu -> {
@@ -178,7 +181,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
         // 使用 DataProvider 懒加载，这里返回空列表
         return new ArrayList<>();
     }
-    
+
     /**
      * 初始化 DataProvider
      */
@@ -187,21 +190,20 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
         if (currentPageRequest == null) {
             currentPageRequest = new PageRequest();
         }
-        
+
         // 设置 Grid 的 pageSize 与分页请求一致
         grid.setPageSize(currentPageRequest.getPageSize());
-        
+
         dataProvider = DataProviderUtil.createPageDataProvider(
-            () -> currentQuery != null ? currentQuery : new MenuQueryDTO(),
-            () -> {
-                // 确保返回的分页请求不为 null
-                if (currentPageRequest == null) {
-                    currentPageRequest = new PageRequest();
-                }
-                return currentPageRequest;
-            },
-            service::pageMenus
-        );
+                () -> currentQuery != null ? currentQuery : new MenuQueryDTO(),
+                () -> {
+                    // 确保返回的分页请求不为 null
+                    if (currentPageRequest == null) {
+                        currentPageRequest = new PageRequest();
+                    }
+                    return currentPageRequest;
+                },
+                service::pageMenus);
         grid.setDataProvider(dataProvider);
     }
 
@@ -295,8 +297,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
         resetButton.addClickListener(e -> resetSearch());
 
         HorizontalLayout searchBar = new HorizontalLayout(
-                nameSearchField, pathSearchField, statusFilter, searchButton, resetButton
-        );
+                nameSearchField, pathSearchField, statusFilter, searchButton, resetButton);
         searchBar.setSpacing(true);
         searchBar.setAlignItems(FlexComponent.Alignment.END);
         searchBar.setWidthFull();
@@ -355,8 +356,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
         });
 
         HorizontalLayout batchBar = new HorizontalLayout(
-                batchDeleteButton, batchEnableButton, batchDisableButton
-        );
+                batchDeleteButton, batchEnableButton, batchDisableButton);
         batchBar.setSpacing(true);
         batchBar.setVisible(false); // 默认隐藏，有选中项时显示
         batchBar.addClassName("batch-operation-bar");
@@ -421,8 +421,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
         pageInfo.getStyle().set("align-self", "center");
 
         paginationLayout = new HorizontalLayout(
-                firstPageButton, prevPageButton, pageInfo, nextPageButton, lastPageButton
-        );
+                firstPageButton, prevPageButton, pageInfo, nextPageButton, lastPageButton);
         paginationLayout.setWidthFull();
         paginationLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         paginationLayout.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -458,7 +457,7 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
             if (dataProvider != null) {
                 dataProvider.refreshAll();
             }
-            
+
             // 获取当前页数据用于更新分页信息
             currentPageResult = service.pageMenus(currentPageRequest, currentQuery);
 
@@ -566,20 +565,19 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
         String names = selected.stream().map(Menu::getName).collect(Collectors.joining("、"));
 
         ConfirmDialogUtil.createBatchDeleteDialog(
-            I18NUtil.get("menu.title"),
-            ids.size(),
-            names,
-            () -> {
-                try {
-                    service.batchDeleteMenus(ids);
-                    NotificationUtil.showSuccess(I18NUtil.get("menu.batch.delete.success", ids.size()));
-                    grid.deselectAll();
-                    performSearch();
-                } catch (Exception ex) {
-                    NotificationUtil.showError(I18NUtil.get("menu.batch.delete.failed", ex.getMessage()));
-                }
-            }
-        ).open();
+                I18NUtil.get("menu.title"),
+                ids.size(),
+                names,
+                () -> {
+                    try {
+                        service.batchDeleteMenus(ids);
+                        NotificationUtil.showSuccess(I18NUtil.get("menu.batch.delete.success", ids.size()));
+                        grid.deselectAll();
+                        performSearch();
+                    } catch (Exception ex) {
+                        NotificationUtil.showError(I18NUtil.get("menu.batch.delete.failed", ex.getMessage()));
+                    }
+                }).open();
     }
 
     /**
@@ -596,28 +594,25 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
         String entityName = I18NUtil.get("menu.title");
         String actionKey = isEnabled ? "menu.batch.enable" : "menu.batch.disable";
 
-        (isEnabled ? 
-            ConfirmDialogUtil.createBatchEnableDialog(entityName, ids.size(), () -> {
-                try {
-                    service.batchUpdateMenuStatus(ids, true);
-                    NotificationUtil.showSuccess(I18NUtil.get(actionKey + ".success", ids.size()));
-                    grid.deselectAll();
-                    performSearch();
-                } catch (Exception ex) {
-                    NotificationUtil.showError(I18NUtil.get(actionKey + ".failed", ex.getMessage()));
-                }
-            }) :
-            ConfirmDialogUtil.createBatchDisableDialog(entityName, ids.size(), () -> {
-                try {
-                    service.batchUpdateMenuStatus(ids, false);
-                    NotificationUtil.showSuccess(I18NUtil.get(actionKey + ".success", ids.size()));
-                    grid.deselectAll();
-                    performSearch();
-                } catch (Exception ex) {
-                    NotificationUtil.showError(I18NUtil.get(actionKey + ".failed", ex.getMessage()));
-                }
-            })
-        ).open();
+        (isEnabled ? ConfirmDialogUtil.createBatchEnableDialog(entityName, ids.size(), () -> {
+            try {
+                service.batchUpdateMenuStatus(ids, true);
+                NotificationUtil.showSuccess(I18NUtil.get(actionKey + ".success", ids.size()));
+                grid.deselectAll();
+                performSearch();
+            } catch (Exception ex) {
+                NotificationUtil.showError(I18NUtil.get(actionKey + ".failed", ex.getMessage()));
+            }
+        }) : ConfirmDialogUtil.createBatchDisableDialog(entityName, ids.size(), () -> {
+            try {
+                service.batchUpdateMenuStatus(ids, false);
+                NotificationUtil.showSuccess(I18NUtil.get(actionKey + ".success", ids.size()));
+                grid.deselectAll();
+                performSearch();
+            } catch (Exception ex) {
+                NotificationUtil.showError(I18NUtil.get(actionKey + ".failed", ex.getMessage()));
+            }
+        })).open();
     }
 
     /**
@@ -629,13 +624,13 @@ public class MenuListView extends BaseListView<Menu, MenuService> implements Has
             int pageNum = pageData.getPageNum();
             int totalPages = PaginationUtil.calculateTotalPages(pageData);
 
-            pageInfo.setText(I18NUtil.get("pagination.info", pageNum, totalPages > 0 ? totalPages : 1, pageData.getTotal()));
+            pageInfo.setText(
+                    I18NUtil.get("pagination.info", pageNum, totalPages > 0 ? totalPages : 1, pageData.getTotal()));
 
             // 更新按钮状态
             updatePaginationButtons(
-                PaginationUtil.hasPrevPage(pageData),
-                PaginationUtil.hasNextPage(pageData)
-            );
+                    PaginationUtil.hasPrevPage(pageData),
+                    PaginationUtil.hasNextPage(pageData));
         }
     }
 

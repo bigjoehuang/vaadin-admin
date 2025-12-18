@@ -49,6 +49,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
     private static final String LAST_ROUTE_KEY = "lastRoute";
     private Tabs tabs;
     private H1 logo;
+    private ContextMenu userContextMenu;
     private final UserService userService;
     private final MenuService menuService;
 
@@ -225,19 +226,19 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         userLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         
         // 创建上下文菜单
-        ContextMenu contextMenu = new ContextMenu();
-        contextMenu.setTarget(userLayout);
-        contextMenu.setOpenOnClick(true);
+        userContextMenu = new ContextMenu();
+        userContextMenu.setTarget(userLayout);
+        userContextMenu.setOpenOnClick(true);
         
         // 添加"修改密码"菜单项
-        MenuItem changePasswordItem = contextMenu.addItem(I18NUtil.get("main.layout.change.password"), e -> {
+        MenuItem changePasswordItem = userContextMenu.addItem(I18NUtil.get("main.layout.change.password"), e -> {
             ChangePasswordDialog dialog = new ChangePasswordDialog(userService);
             dialog.open();
         });
         changePasswordItem.addComponentAsFirst(new Icon(VaadinIcon.KEY));
         
         // 添加"退出登录"菜单项
-        MenuItem logoutItem = contextMenu.addItem(I18NUtil.get("main.layout.logout"), e -> {
+        MenuItem logoutItem = userContextMenu.addItem(I18NUtil.get("main.layout.logout"), e -> {
             getUI().ifPresent(ui -> {
                 ui.getPage().setLocation("/logout");
             });
@@ -412,6 +413,12 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         // 刷新整个 MainLayout 的文本
         UIRefreshUtil.refreshUIText(this);
         
+        // 刷新内容区域的文本（AppLayout的内容不是直接子组件，需要单独处理）
+        Component content = getContent();
+        if (content != null) {
+            UIRefreshUtil.refreshUIText(content);
+        }
+        
         // 更新 logo 文本
         if (logo != null) {
             logo.setText(I18NUtil.get("main.layout.app.name"));
@@ -420,8 +427,39 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         // 更新导航菜单文本
         updateNavigationMenuText(selectedPath);
         
+        // 更新用户菜单文本
+        updateUserMenuText();
+        
         // 触发 UI 刷新事件
         UIRefreshUtil.triggerUIRefresh();
+    }
+    
+    /**
+     * 更新用户菜单文本
+     * 语言切换时调用此方法更新右上角用户菜单的文本
+     */
+    private void updateUserMenuText() {
+        if (userContextMenu == null) {
+            return;
+        }
+        
+        // 清除现有的菜单项
+        userContextMenu.removeAll();
+        
+        // 重新添加"修改密码"菜单项
+        MenuItem changePasswordItem = userContextMenu.addItem(I18NUtil.get("main.layout.change.password"), e -> {
+            ChangePasswordDialog dialog = new ChangePasswordDialog(userService);
+            dialog.open();
+        });
+        changePasswordItem.addComponentAsFirst(new Icon(VaadinIcon.KEY));
+        
+        // 重新添加"退出登录"菜单项
+        MenuItem logoutItem = userContextMenu.addItem(I18NUtil.get("main.layout.logout"), e -> {
+            getUI().ifPresent(ui -> {
+                ui.getPage().setLocation("/logout");
+            });
+        });
+        logoutItem.addComponentAsFirst(new Icon(VaadinIcon.SIGN_OUT));
     }
     
     /**
