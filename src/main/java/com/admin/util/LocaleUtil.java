@@ -32,7 +32,15 @@ public class LocaleUtil {
             }
         }
 
-        // 从 localStorage 读取
+        return DEFAULT_LOCALE;
+    }
+
+    /**
+     * 从localStorage异步加载并应用保存的语言设置
+     * 该方法应该在UI初始化时调用，如AppShell或MainLayout中
+     */
+    public static void loadLocaleFromStorage() {
+        UI currentUI = UI.getCurrent();
         if (currentUI != null) {
             currentUI.getPage().executeJs(
                     "return localStorage.getItem($0);",
@@ -40,14 +48,14 @@ public class LocaleUtil {
             ).then(String.class, localeStr -> {
                 if (localeStr != null && !localeStr.isEmpty()) {
                     Locale savedLocale = parseLocale(localeStr);
-                    if (savedLocale != null && currentUI != null) {
-                        currentUI.setLocale(savedLocale);
+                    if (savedLocale != null && UI.getCurrent() != null) {
+                        UI.getCurrent().setLocale(savedLocale);
+                        // 通知UI刷新
+                        UIRefreshUtil.triggerUIRefresh();
                     }
                 }
             });
         }
-
-        return DEFAULT_LOCALE;
     }
 
     /**
@@ -101,6 +109,8 @@ public class LocaleUtil {
                 locale = getBrowserLocale();
             }
             currentUI.setLocale(locale);
+            // 通知UI刷新
+            UIRefreshUtil.triggerUIRefresh();
         });
     }
 

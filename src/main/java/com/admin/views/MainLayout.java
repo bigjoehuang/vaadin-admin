@@ -31,6 +31,7 @@ import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 import com.vaadin.flow.router.RouterLink;
 
+import java.util.ArrayList;
 import java.util.List;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import com.vaadin.flow.component.dependency.JsModule;
@@ -47,6 +48,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
 
     private static final String LAST_ROUTE_KEY = "lastRoute";
     private Tabs tabs;
+    private H1 logo;
     private final UserService userService;
     private final MenuService menuService;
 
@@ -70,7 +72,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
     }
 
     private void createHeader() {
-        H1 logo = new H1(I18NUtil.get("main.layout.app.name"));
+        logo = new H1(I18NUtil.get("main.layout.app.name"));
         logo.addClassNames(
                 LumoUtility.FontSize.LARGE,
                 LumoUtility.Margin.MEDIUM);
@@ -392,15 +394,54 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
      * 切换语言后调用此方法更新所有文本
      */
     private void refreshUIText() {
+        // 保存当前选中的菜单项
+        Tab selectedTab = null;
+        String selectedPath = null;
+        if (tabs != null && tabs.getSelectedTab() != null) {
+            selectedTab = tabs.getSelectedTab();
+            // 获取当前选中菜单项的路径
+            RouterLink link = (RouterLink) selectedTab.getChildren()
+                .filter(RouterLink.class::isInstance)
+                .findFirst()
+                .orElse(null);
+            if (link != null) {
+                selectedPath = link.getHref();
+            }
+        }
+        
         // 刷新整个 MainLayout 的文本
         UIRefreshUtil.refreshUIText(this);
         
+        // 更新 logo 文本
+        if (logo != null) {
+            logo.setText(I18NUtil.get("main.layout.app.name"));
+        }
+        
+        // 更新导航菜单文本
+        updateNavigationMenuText(selectedPath);
+        
         // 触发 UI 刷新事件
         UIRefreshUtil.triggerUIRefresh();
+    }
+    
+    /**
+     * 更新导航菜单文本
+     * @param selectedPath 当前选中的菜单项路径，用于保持选中状态
+     */
+    private void updateNavigationMenuText(String selectedPath) {
+        if (tabs == null) {
+            return;
+        }
         
-        // 重新创建导航菜单以更新菜单文本
-        if (tabs != null) {
-            tabs.removeAll();
+        // 获取当前的所有菜单项
+        List<Tab> currentTabs = new ArrayList<>();
+        tabs.getChildren()
+            .filter(Tab.class::isInstance)
+            .map(Tab.class::cast)
+            .forEach(currentTabs::add);
+        
+        // 如果当前没有菜单项，重新创建菜单
+        if (currentTabs.isEmpty()) {
             try {
                 Long userId = UserUtil.getCurrentUserId();
                 if (userId != null) {
@@ -413,21 +454,95 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
                     }
                 } else {
                     // 如果无法获取用户ID，使用默认菜单
-                    tabs.add(createTab(I18NUtil.get("main.layout.dashboard"), DashboardView.class));
-                    tabs.add(createTab(I18NUtil.get("main.layout.user.management"), UserListView.class));
-                    tabs.add(createTab(I18NUtil.get("main.layout.role.management"), RoleListView.class));
-                    tabs.add(createTab(I18NUtil.get("main.layout.menu.management"), MenuListView.class));
-                    tabs.add(createTab(I18NUtil.get("main.layout.operation.log"), com.admin.views.operationlog.OperationLogListView.class));
+                    addDefaultMenuTabs();
                 }
             } catch (Exception e) {
                 // 如果加载菜单失败，使用默认菜单
-                tabs.add(createTab(I18NUtil.get("main.layout.dashboard"), DashboardView.class));
-                tabs.add(createTab(I18NUtil.get("main.layout.user.management"), UserListView.class));
-                tabs.add(createTab(I18NUtil.get("main.layout.role.management"), RoleListView.class));
-                tabs.add(createTab(I18NUtil.get("main.layout.menu.management"), MenuListView.class));
-                tabs.add(createTab(I18NUtil.get("main.layout.operation.log"), com.admin.views.operationlog.OperationLogListView.class));
+                addDefaultMenuTabs();
+            }
+        } else {
+            // 更新现有菜单项的文本
+            for (Tab tab : currentTabs) {
+                RouterLink link = (RouterLink) tab.getChildren()
+                    .filter(RouterLink.class::isInstance)
+                    .findFirst()
+                    .orElse(null);
+                
+                if (link != null) {
+                    // 根据 href 获取对应的 I18N key
+                    String href = link.getHref();
+                    String menuText = getMenuTextByHref(href);
+                    
+                    // 更新链接文本
+                    link.setText(menuText);
+                }
             }
         }
+        
+        // 恢复选中的菜单项
+        if (selectedPath != null) {
+            tabs.getChildren()
+                .filter(Tab.class::isInstance)
+                .map(Tab.class::cast)
+                .forEach(tab -> {
+                    RouterLink link = (RouterLink) tab.getChildren()
+                        .filter(RouterLink.class::isInstance)
+                        .findFirst()
+                        .orElse(null);
+                    if (link != null) {
+                        String href = link.getHref();
+                        if (href != null && selectedPath.equals(href)) {
+                            tabs.setSelectedTab(tab);
+                        }
+                    }
+                });
+        }
+    }
+    
+    /**
+     * 根据路径获取菜单文本
+     * @param href 菜单项的 href
+     * @return 国际化后的菜单文本
+     */
+    private String getMenuTextByHref(String href) {
+        if (href == null) {
+            return "";
+        }
+        
+        // 移除前导斜杠
+        if (href.startsWith("/")) {
+            href = href.substring(1);
+        }
+        
+        // 根据路径返回对应的 I18N key
+        switch (href) {
+            case "":
+            case "dashboard":
+                return I18NUtil.get("main.layout.dashboard");
+            case "users":
+                return I18NUtil.get("main.layout.user.management");
+            case "roles":
+                return I18NUtil.get("main.layout.role.management");
+            case "menus":
+                return I18NUtil.get("main.layout.menu.management");
+            case "operationlog":
+            case "operation-log":
+            case "operation-logs":
+                return I18NUtil.get("main.layout.operation.log");
+            default:
+                return href;
+        }
+    }
+    
+    /**
+     * 添加默认菜单
+     */
+    private void addDefaultMenuTabs() {
+        tabs.add(createTab(I18NUtil.get("main.layout.dashboard"), DashboardView.class));
+        tabs.add(createTab(I18NUtil.get("main.layout.user.management"), UserListView.class));
+        tabs.add(createTab(I18NUtil.get("main.layout.role.management"), RoleListView.class));
+        tabs.add(createTab(I18NUtil.get("main.layout.menu.management"), MenuListView.class));
+        tabs.add(createTab(I18NUtil.get("main.layout.operation.log"), com.admin.views.operationlog.OperationLogListView.class));
     }
 
     @Override
