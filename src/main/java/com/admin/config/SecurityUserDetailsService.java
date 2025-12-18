@@ -2,10 +2,15 @@ package com.admin.config;
 
 import com.admin.entity.Permission;
 import com.admin.entity.User;
+import com.admin.mapper.UserMapper;
 import com.admin.mapper.UserRoleMapper;
 import com.admin.service.PermissionService;
 import com.admin.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,6 +28,7 @@ import java.util.List;
  * @author Admin
  * @date 2024-01-01
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SecurityUserDetailsService implements UserDetailsService {
@@ -30,6 +36,7 @@ public class SecurityUserDetailsService implements UserDetailsService {
     private final UserService userService;
     private final PermissionService permissionService;
     private final UserRoleMapper userRoleMapper;
+    private final UserMapper userMapper;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -45,6 +52,10 @@ public class SecurityUserDetailsService implements UserDetailsService {
 
         if (user.getIsEnabled() == null || !user.getIsEnabled()) {
             throw new UsernameNotFoundException("用户已被禁用: " + username);
+        }
+
+        if (user.getIsLocked() != null && user.getIsLocked()) {
+            throw new UsernameNotFoundException("用户已被锁定: " + username);
         }
 
         // 从数据库查询用户的角色和权限
@@ -82,6 +93,54 @@ public class SecurityUserDetailsService implements UserDetailsService {
                 .credentialsExpired(false)
                 .disabled(!user.getIsEnabled())
                 .build();
+    }
+
+    /**
+     * 处理认证成功事件
+     */
+    @EventListener
+    public void handleAuthenticationSuccess(AuthenticationSuccessEvent event) {
+        String username = event.getAuthentication().getName();
+        try {
+            User user = userService.getUserByUserName(username);
+            if (user != null) {
+                // 重置登录失败次数
+                userMapper.resetLoginFailCount(user.getId());
+                log.info("用户登录成功，重置失败次数: {}", username);
+            }
+        } catch (Exception e) {
+            log.error("处理登录成功事件失败: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * 处理认证失败事件
+     */
+    @EventListener
+    public void handleAuthenticationFailure(AuthenticationFailureBadCredentialsEvent event) {
+        String username = event.getAuthentication().getName();
+        try {
+            User user = userService.getUserByUserName(username);
+            if (user != null) {
+                // 增加登录失败次数
+                Integer failCount = user.getLoginFailCount() != null ? user.getLoginFailCount() : 0;
+                failCount++;
+                
+                // 更新失败次数和时间
+                userMapper.updateLoginFailCount(user.getId(), failCount);
+                userMapper.updateLastLoginFailTime(user.getId(), System.currentTimeMillis());
+                
+                // 如果失败次数超过5次，锁定用户
+                if (failCount >= 5) {
+                    userMapper.updateLockStatus(user.getId(), true);
+                    log.info("用户登录失败次数超过限制，已锁定: {}", username);
+                } else {
+                    log.info("用户登录失败，当前失败次数: {}，用户名: {}", failCount, username);
+                }
+            }
+        } catch (Exception e) {
+            log.error("处理登录失败事件失败: {}", e.getMessage());
+        }
     }
 }
 

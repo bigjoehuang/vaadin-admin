@@ -20,3 +20,5 @@ public class ${entityName} extends BaseEntity {
 
 
 
+
+

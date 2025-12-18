@@ -104,5 +104,40 @@ public interface UserMapper {
      * @return 更新行数
      */
     int updatePasswordById(@Param("id") Long id, @Param("password") String password);
+
+    /**
+     * 更新登录失败次数
+     *
+     * @param id   用户ID
+     * @param count 失败次数
+     * @return 更新行数
+     */
+    int updateLoginFailCount(@Param("id") Long id, @Param("count") Integer count);
+
+    /**
+     * 更新最后登录失败时间
+     *
+     * @param id   用户ID
+     * @param time 时间戳
+     * @return 更新行数
+     */
+    int updateLastLoginFailTime(@Param("id") Long id, @Param("time") Long time);
+
+    /**
+     * 更新锁定状态
+     *
+     * @param id       用户ID
+     * @param isLocked 是否锁定
+     * @return 更新行数
+     */
+    int updateLockStatus(@Param("id") Long id, @Param("isLocked") Boolean isLocked);
+
+    /**
+     * 重置登录失败次数
+     *
+     * @param id 用户ID
+     * @return 更新行数
+     */
+    int resetLoginFailCount(@Param("id") Long id);
 }
 

@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 /**
  * Spring Security 配置
@@ -39,8 +40,12 @@ public class SecurityConfig {
                 // 其他请求需要认证
                 .anyRequest().authenticated()
             )
-            // 禁用 CSRF（Vaadin 有自己的 CSRF 保护）
-            .csrf(AbstractHttpConfigurer::disable)
+            // 启用CSRF防护，使用CookieCsrfTokenRepository以支持Vaadin和REST API
+            .csrf(csrf -> csrf
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                // 忽略静态资源和API的CSRF检查
+                .ignoringRequestMatchers("/VAADIN/**", "/api/**", "/icons/**", "/images/**", "/themes/**", "/frontend/**", "/sw.js", "/sw-runtime-resources-precache.js", "/manifest.webmanifest")
+            )
             // 配置表单登录
             .formLogin(form -> form
                 .loginPage("/login")
@@ -53,6 +58,20 @@ public class SecurityConfig {
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login")
                 .permitAll()
+            )
+            // 配置会话管理
+            .sessionManagement(session -> session
+                // 设置会话超时时间为30分钟
+                .maximumSessions(1)
+                .expiredUrl("/login?expired=true")
+                .and()
+                .sessionFixation().newSession()
+            )
+            // 添加安全头
+            .headers(headers -> headers
+                .contentSecurityPolicy(csp -> csp
+                    .policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'self';")
+                )
             );
         return http.build();
     }

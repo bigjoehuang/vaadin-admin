@@ -2,15 +2,22 @@ package com.admin.views;
 
 import com.admin.util.I18NUtil;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.login.LoginForm;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouterLink;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * 登录视图
@@ -37,11 +44,19 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver, Ha
         setSizeFull();
         setAlignItems(FlexComponent.Alignment.CENTER);
         setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        setSpacing(true);
 
         // 设置登录表单的 action 为 Spring Security 的登录处理 URL
         login.setAction("login");
 
-        add(new H1(I18NUtil.get("login.app.name")), login);
+        // 创建忘记密码链接
+        RouterLink forgotPasswordLink = new RouterLink(I18NUtil.get("login.forgot.password"), PasswordResetView.class);
+        forgotPasswordLink.getElement().getStyle().set("color", "var(--lumo-primary-color)");
+        forgotPasswordLink.getElement().getStyle().set("text-decoration", "underline");
+        forgotPasswordLink.getElement().getStyle().set("font-size", "var(--lumo-font-size-s)");
+
+        // 添加组件到布局
+        add(new H1(I18NUtil.get("login.app.name")), login, forgotPasswordLink);
     }
 
     @Override
@@ -55,12 +70,18 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver, Ha
             return;
         }
 
-        // 如果登录失败，显示错误信息
-        if (beforeEnterEvent.getLocation()
+        // 检查查询参数
+        Map<String, List<String>> params = beforeEnterEvent.getLocation()
                 .getQueryParameters()
-                .getParameters()
-                .containsKey("error")) {
+                .getParameters();
+
+        // 如果登录失败，显示错误信息
+        if (params.containsKey("error")) {
             login.setError(true);
+        } 
+        // 如果会话过期，显示会话过期信息
+        else if (params.containsKey("expired")) {
+            Notification.show("您的会话已过期，请重新登录", 3000, Notification.Position.TOP_CENTER);
         }
     }
 

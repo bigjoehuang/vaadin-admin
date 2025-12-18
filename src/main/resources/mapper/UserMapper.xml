@@ -14,10 +14,13 @@
         <result column="avatar" property="avatar"/>
         <result column="isEnabled" property="isEnabled"/>
         <result column="deleted" property="deleted"/>
+        <result column="loginFailCount" property="loginFailCount"/>
+        <result column="lastLoginFailTime" property="lastLoginFailTime"/>
+        <result column="isLocked" property="isLocked"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, createdAt, updatedAt, userName, password, nickname, email, phone, avatar, isEnabled, deleted
+        id, createdAt, updatedAt, userName, password, nickname, email, phone, avatar, isEnabled, deleted, loginFailCount, lastLoginFailTime, isLocked
     </sql>
 
     <select id="selectById" resultMap="BaseResultMap">
@@ -155,6 +158,30 @@
     <update id="updatePasswordById">
         UPDATE sys_user
         SET password = #{password}, updatedAt = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateLoginFailCount">
+        UPDATE sys_user
+        SET loginFailCount = #{count}, updatedAt = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateLastLoginFailTime">
+        UPDATE sys_user
+        SET lastLoginFailTime = #{time}, updatedAt = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateLockStatus">
+        UPDATE sys_user
+        SET isLocked = #{isLocked}, updatedAt = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="resetLoginFailCount">
+        UPDATE sys_user
+        SET loginFailCount = 0, lastLoginFailTime = NULL, updatedAt = NOW()
         WHERE id = #{id} AND deleted = 0
     </update>
 

@@ -30,7 +30,16 @@ public class BaseController {
     protected <T> Result<T> error(String message) {
         return Result.error(message);
     }
+
+    /**
+     * 失败响应（带错误码）
+     */
+    protected <T> Result<T> error(Integer code, String message) {
+        return Result.error(code, message);
+    }
 }
+
+
 
 
 

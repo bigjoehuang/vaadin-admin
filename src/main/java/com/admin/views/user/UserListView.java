@@ -6,6 +6,7 @@ import com.admin.constant.StatusConstant;
 import com.admin.dto.PageRequest;
 import com.admin.dto.UserQueryDTO;
 import com.admin.entity.User;
+import com.admin.service.FileService;
 import com.admin.service.RoleService;
 import com.admin.service.UserService;
 import com.admin.util.DataProviderUtil;
@@ -78,10 +79,12 @@ public class UserListView extends BaseListView<User, UserService> implements Has
     private DataProvider<User, Void> dataProvider;
 
     private final RoleService roleService;
+    private final FileService fileService;
 
-    public UserListView(UserService userService, RoleService roleService) {
+    public UserListView(UserService userService, RoleService roleService, FileService fileService) {
         super(userService, User.class, I18NUtil.get("user.title"), I18NUtil.get("user.add"), "user-list-view");
         this.roleService = roleService;
+        this.fileService = fileService;
 
         // 启用Grid多选模式
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
@@ -225,7 +228,7 @@ public class UserListView extends BaseListView<User, UserService> implements Has
 
     @Override
     protected BaseFormDialog<User> getFormDialog(boolean isEdit, User entity) {
-        UserFormDialog dialog = new UserFormDialog(service, isEdit, this::performSearch);
+        UserFormDialog dialog = new UserFormDialog(service, fileService, isEdit, this::performSearch);
         if (isEdit && entity != null) {
             dialog.setEntity(entity);
         }

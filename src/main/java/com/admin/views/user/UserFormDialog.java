@@ -2,14 +2,30 @@ package com.admin.views.user;
 
 import com.admin.component.BaseFormDialog;
 import com.admin.entity.User;
+import com.admin.service.FileService;
 import com.admin.service.UserService;
 import com.admin.util.I18NUtil;
+
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.html.Image;
+
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.validator.EmailValidator;
 import com.vaadin.flow.data.validator.StringLengthValidator;
+import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.component.Unit;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Optional;
 
 /**
  * 用户表单对话框
@@ -21,6 +37,7 @@ import com.vaadin.flow.data.validator.StringLengthValidator;
 public class UserFormDialog extends BaseFormDialog<User> {
 
     private final UserService userService;
+    private final FileService fileService;
     private final Runnable refreshCallback;
 
     private TextField userNameField;
@@ -29,17 +46,24 @@ public class UserFormDialog extends BaseFormDialog<User> {
     private EmailField emailField;
     private TextField phoneField;
     private Checkbox enabledCheckbox;
+    private Image avatarImage;
+    private Upload avatarUpload;
+    private MemoryBuffer avatarBuffer;
+    private byte[] avatarBytes;
+    private boolean avatarChanged;
 
     /**
      * 构造函数
      *
      * @param userService     用户服务
+     * @param fileService     文件服务
      * @param isEdit          是否为编辑模式
      * @param refreshCallback 刷新回调
      */
-    public UserFormDialog(UserService userService, boolean isEdit, Runnable refreshCallback) {
+    public UserFormDialog(UserService userService, FileService fileService, boolean isEdit, Runnable refreshCallback) {
         super(User.class, isEdit);
         this.userService = userService;
+        this.fileService = fileService;
         this.refreshCallback = refreshCallback;
         // 设置对话框标题
         if (isEdit) {
@@ -99,11 +123,68 @@ public class UserFormDialog extends BaseFormDialog<User> {
         enabledCheckbox = new Checkbox(I18NUtil.get("user.status"));
         enabledCheckbox.setValue(true);
 
+        // 头像上传组件
+        avatarImage = new Image();
+        avatarImage.setWidth(100, Unit.PIXELS);
+        avatarImage.setHeight(100, Unit.PIXELS);
+        avatarImage.setAlt(I18NUtil.get("user.avatar"));
+        avatarImage.getElement().getStyle().setBorderRadius("50%");
+        avatarImage.getElement().getStyle().setBorder("2px solid var(--lumo-primary-color)");
+
+        avatarBuffer = new MemoryBuffer();
+        avatarUpload = new Upload(avatarBuffer);
+        avatarUpload.setMaxFiles(1);
+        avatarUpload.setAcceptedFileTypes("image/*");
+        avatarUpload.setWidthFull();
+
+        // 上传成功事件处理
+        avatarUpload.addSucceededListener(event -> {
+            try {
+                // 读取上传的文件内容
+                InputStream inputStream = avatarBuffer.getInputStream();
+                avatarBytes = inputStream.readAllBytes();
+                avatarChanged = true;
+                
+                // 更新头像预览
+                StreamResource resource = new StreamResource("avatar", () -> new ByteArrayInputStream(avatarBytes));
+                avatarImage.setSrc(resource);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+        // 上传失败事件处理
+        avatarUpload.addFailedListener(event -> {
+            showError(I18NUtil.get("user.validation.avatar.upload.failed"));
+        });
+
+        // 水平布局，包含头像预览和上传组件
+        HorizontalLayout avatarLayout = new HorizontalLayout();
+        avatarLayout.setAlignItems(Alignment.CENTER);
+        avatarLayout.setSpacing(true);
+        avatarLayout.setWidthFull();
+        
+        // 头像预览区域
+        HorizontalLayout previewLayout = new HorizontalLayout();
+        previewLayout.setAlignItems(Alignment.CENTER);
+        previewLayout.setJustifyContentMode(JustifyContentMode.CENTER);
+        previewLayout.setWidth("150px");
+        previewLayout.add(avatarImage);
+        
+        // 上传组件区域
+        HorizontalLayout uploadLayout = new HorizontalLayout();
+        uploadLayout.setAlignItems(Alignment.CENTER);
+        uploadLayout.setFlexGrow(1, uploadLayout);
+        uploadLayout.add(avatarUpload);
+        
+        avatarLayout.add(previewLayout, uploadLayout);
+
         formLayout.add(userNameField, 2);
         formLayout.add(passwordField, 2);
         formLayout.add(nicknameField, 2);
         formLayout.add(emailField, 2);
         formLayout.add(phoneField, 2);
+        formLayout.add(avatarLayout, 2);
         formLayout.add(enabledCheckbox, 2);
     }
 
@@ -162,6 +243,20 @@ public class UserFormDialog extends BaseFormDialog<User> {
     @Override
     protected void loadEntityData() {
         // 编辑模式下，数据通过 setEntity 方法设置
+        if (isEdit && entity != null) {
+            // 如果用户已有头像，加载头像
+            String avatar = entity.getAvatar();
+            if (avatar != null && !avatar.isEmpty()) {
+                // 这里假设头像路径是可直接访问的URL
+                avatarImage.setSrc(avatar);
+            } else {
+                // 设置默认头像
+                avatarImage.setSrc("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3Cpath d='M5 21h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z'/%3E%3C/svg%3E");
+            }
+        } else {
+            // 新增模式，设置默认头像
+            avatarImage.setSrc("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3Cpath d='M5 21h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z'/%3E%3C/svg%3E");
+        }
     }
 
     @Override
@@ -171,6 +266,7 @@ public class UserFormDialog extends BaseFormDialog<User> {
         target.setNickname(source.getNickname());
         target.setEmail(source.getEmail());
         target.setPhone(source.getPhone());
+        target.setAvatar(source.getAvatar());
         target.setIsEnabled(source.getIsEnabled());
         target.setDeleted(source.getDeleted());
     }
@@ -182,6 +278,29 @@ public class UserFormDialog extends BaseFormDialog<User> {
         }
 
         try {
+            // 处理头像上传
+            if (avatarChanged && avatarBytes != null) {
+                // 创建MultipartFile对象
+                MultipartFile multipartFile = new org.springframework.web.multipart.commons.CommonsMultipartFile(
+                        new org.apache.commons.fileupload.disk.DiskFileItem(
+                                "avatar",
+                                "image/*",
+                                false,
+                                "avatar.jpg",
+                                avatarBytes.length,
+                                null) {
+                            @Override
+                            public InputStream getInputStream() throws IOException {
+                                return new ByteArrayInputStream(avatarBytes);
+                            }
+                        });
+                
+                // 上传头像，获取文件路径
+                String avatarPath = fileService.uploadFile(multipartFile);
+                // 设置头像路径
+                entity.setAvatar(avatarPath);
+            }
+
             // 编辑模式下，如果密码为空，则设置为null，让Service层保持原密码
             if (isEdit && (entity.getPassword() == null || entity.getPassword().trim().isEmpty())) {
                 entity.setPassword(null);

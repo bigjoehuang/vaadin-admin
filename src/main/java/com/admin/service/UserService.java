@@ -3,6 +3,7 @@ package com.admin.service;
 import com.admin.dto.PageRequest;
 import com.admin.dto.UserQueryDTO;
 import com.admin.entity.User;
+import com.admin.service.base.BaseService;
 import com.admin.util.PageResult;
 
 import java.util.List;
@@ -13,21 +14,11 @@ import java.util.List;
  * @author Admin
  * @date 2024-01-01
  */
-public interface UserService {
-    /**
-     * 根据ID查询用户
-     */
-    User getUserById(Long id);
-
+public interface UserService extends BaseService<User> {
     /**
      * 根据用户名查询用户
      */
     User getUserByUserName(String userName);
-
-    /**
-     * 查询所有用户
-     */
-    List<User> listUsers();
 
     /**
      * 分页查询用户
@@ -47,14 +38,11 @@ public interface UserService {
     List<User> listUsersByCondition(UserQueryDTO query);
 
     /**
-     * 保存用户
+     * 删除用户
+     *
+     * @param id 用户ID
      */
-    void saveUser(User user);
-
-    /**
-     * 更新用户
-     */
-    void updateUser(User user);
+    void deleteUser(Long id);
 
     /**
      * 更新用户状态
@@ -63,11 +51,6 @@ public interface UserService {
      * @param isEnabled 是否启用
      */
     void updateUserStatus(Long id, Boolean isEnabled);
-
-    /**
-     * 删除用户
-     */
-    void deleteUser(Long id);
 
     /**
      * 批量删除用户
@@ -116,5 +99,35 @@ public interface UserService {
      * @param roleId 角色ID
      */
     void removeUserRole(Long userId, Long roleId);
+
+    /**
+     * 解锁用户
+     *
+     * @param id 用户ID
+     */
+    void unlockUser(Long id);
+
+    /**
+     * 批量解锁用户
+     *
+     * @param ids 用户ID列表
+     */
+    void batchUnlockUsers(List<Long> ids);
+
+    /**
+     * 发送密码重置邮件
+     *
+     * @param userName 用户名
+     * @param email 邮箱
+     */
+    void sendPasswordResetEmail(String userName, String email);
+
+    /**
+     * 重置用户密码
+     *
+     * @param userId 用户ID
+     * @param newPassword 新密码
+     */
+    void resetPassword(Long userId, String newPassword);
 }
 
